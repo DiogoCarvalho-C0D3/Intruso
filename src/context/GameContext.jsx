@@ -4,9 +4,13 @@ import { v4 as uuidv4 } from 'uuid';
 
 const GameContext = createContext();
 
-// Detect server URL. If we are on localhost, assume port 3001. 
-// If accessed via network IP, we need to construct the URL for the same IP but port 3001.
+// Detect server URL. 
+// If in Production/Deployed, return empty string (relative path) to connect to same origin.
+// If valid in Dev, use logic to support local network device access.
 const getServerUrl = () => {
+    if (import.meta.env.PROD) {
+        return ''; // Connect to same origin
+    }
     const hostname = window.location.hostname;
     return `http://${hostname}:3001`;
 };

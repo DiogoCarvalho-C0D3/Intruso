@@ -4,13 +4,23 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { GameManager } from './gameManager.js';
 
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 app.use(cors());
+
+// Serve static files from the React build "dist" directory
+// The "dist" folder is at the project root, one level up from "server"
+app.use(express.static(path.join(__dirname, '../dist')));
 
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow any origin for local network play
+        origin: "*", // Allow any origin
         methods: ["GET", "POST"]
     }
 });
@@ -146,7 +156,12 @@ io.on('connection', (socket) => {
     });
 });
 
-const PORT = 3001;
+// Handle SPA routing: serve index.html for any unknown route
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`SERVER RUNNING ON PORT ${PORT} `);
 });
