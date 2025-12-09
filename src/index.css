@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Default (Slate) */
+    --color-bg: 2 6 23;
+    /* slate-950 */
+    --color-card: 15 23 42;
+    /* slate-900 */
+    --color-border: 30 41 59;
+    /* slate-800 */
+    --color-text: 248 250 252;
+    /* slate-50 */
+    --color-text-muted: 148 163 184;
+    /* slate-400 */
+    --color-primary: 124 58 237;
+    /* violet-600 */
+    --color-primary-hover: 109 40 217;
+    /* violet-700 */
+  }
+
+  /* Tema: Meia-Noite */
+  .theme-midnight {
+    --color-bg: 5 10 30;
+    /* deep blue */
+    --color-card: 10 20 50;
+    --color-border: 30 50 90;
+    --color-text: 220 230 255;
+    --color-text-muted: 100 130 180;
+    --color-primary: 6 182 212;
+    /* cyan-500 */
+    --color-primary-hover: 8 145 178;
+  }
+
+  /* Tema: Papiro */
+  .theme-paper {
+    --color-bg: 245 245 244;
+    /* stone-100 */
+    --color-card: 255 255 255;
+    /* white */
+    --color-border: 214 211 209;
+    /* stone-300 */
+    --color-text: 28 25 23;
+    /* stone-900 */
+    --color-text-muted: 120 113 108;
+    /* stone-500 */
+    --color-primary: 249 115 22;
+    /* orange-500 */
+    --color-primary-hover: 234 88 12;
+  }
+
+  /* Tema: Algodão Doce */
+  .theme-soft {
+    --color-bg: 255 241 242;
+    /* rose-50 */
+    --color-card: 255 255 255;
+    --color-border: 253 164 175;
+    /* rose-300 */
+    --color-text: 136 19 55;
+    /* rose-900 */
+    --color-text-muted: 225 29 72;
+    /* rose-600 */
+    --color-primary: 219 39 119;
+    /* pink-600 */
+    --color-primary-hover: 190 24 93;
+  }
+
+  /* Tema: Natal */
+  .theme-christmas {
+    --color-bg: 22 10 10;
+    /* red-950/dark */
+    --color-card: 35 15 15;
+    /* red-950/light */
+    --color-border: 60 20 20;
+    /* red-900 */
+    --color-text: 254 242 242;
+    /* red-50 */
+    --color-text-muted: 252 165 165;
+    /* red-300 */
+    --color-primary: 22 163 74;
+    /* green-600 (Traditional Green) */
+    --color-primary-hover: 21 128 61;
+    /* green-700 */
+  }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    @apply bg-skin-base text-skin-text min-h-screen overflow-x-hidden antialiased;
+    overscroll-behavior-y: auto;
+    /* Enable pull-to-refresh on PWA */
+  }
+}
+
+/* Animations included in components layer for theme usage */
+/* Animations included in components layer for theme usage */
+@layer components {
+  @keyframes snowfall {
+    0% {
+      transform: translateY(0) translateX(0) rotate(0deg);
+    }
+
+    100% {
+      transform: translateY(100vh) translateX(20px) rotate(360deg);
+    }
+  }
+
+  .animate-snowfall {
+    animation-name: snowfall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  /* Custom Components */
+
+  /* 1. Cards */
+  .card {
+    @apply bg-skin-card border border-skin-border p-4 relative transition-colors rounded-3xl;
+  }
+
+  /* 2. Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center w-full px-6 py-3.5 font-bold text-base cursor-pointer transition-all border-none rounded-full active:scale-95 touch-manipulation;
+  }
+
+  .btn-primary {
+    @apply bg-skin-primary text-white shadow-lg shadow-skin-primary/20 hover:bg-skin-primary-hover active:bg-skin-primary-hover;
+  }
+
+  .btn-secondary {
+    @apply bg-skin-border text-skin-text hover:bg-skin-card active:bg-skin-border;
+  }
+
+  .btn-icon {
+    @apply w-10 h-10 rounded-full flex items-center justify-center bg-skin-card border border-skin-border text-skin-text transition-colors active:bg-skin-border;
+  }
+
+  /* 3. Inputs */
+  .input,
+  .input-text {
+    @apply w-full bg-skin-card border border-skin-border text-skin-text px-4 py-3.5 text-base text-center font-semibold focus:border-skin-primary focus:ring-1 focus:ring-skin-primary outline-none transition-colors rounded-2xl;
+  }
+
+  /* 4. Utilities */
+  .center-xy {
+    @apply flex flex-col items-center justify-center text-center;
+  }
+}
