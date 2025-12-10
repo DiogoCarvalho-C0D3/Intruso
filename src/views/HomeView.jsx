@@ -13,9 +13,10 @@ import { REWARDS_MAP } from '../data/missions';
 
 export default function HomeView() {
     const { login, currentUser } = useGame();
-    const { stats, resetStats, equipReward } = useStatistics();
+    const { stats, resetStats, equipReward } = useStatistics(null);
 
     const [name, setName] = useState('');
+    const [discriminator, setDiscriminator] = useState('');
     const [avatarSeed, setAvatarSeed] = useState(Math.random().toString());
     const [isStatsOpen, setIsStatsOpen] = useState(false);
     const [isMissionsOpen, setIsMissionsOpen] = useState(false);
@@ -49,9 +50,13 @@ export default function HomeView() {
             return;
         }
 
-        // Pass equippedAccessory
-        login(trimmedName, avatarSeed, undefined, equippedAccessory);
-        navigate('/lobby');
+        // Pass equippedAccessory and Discriminator
+        try {
+            login(trimmedName, avatarSeed, undefined, equippedAccessory, discriminator || null);
+            navigate('/lobby');
+        } catch (e) {
+            setError(e.message);
+        }
     };
 
     const handleNameChange = (e) => {
@@ -131,25 +136,42 @@ export default function HomeView() {
                             </div>
                             <span className="text-[10px] text-skin-muted uppercase tracking-widest font-bold">Toca para mudar</span>
 
-                            {/* Name Input */}
-                            <div className="w-full max-w-xs relative">
+                            {/* Name Input & Tag */}
+                            <div className="w-full max-w-xs flex gap-2">
                                 <input
                                     type="text"
-                                    placeholder="O teu nome de agente"
+                                    placeholder="NOME"
                                     value={name}
                                     onChange={handleNameChange}
                                     maxLength={15}
-                                    className={`input input-bordered w-full bg-skin-base border-skin-border text-skin-text placeholder-skin-muted focus:ring-skin-primary transition-all text-center font-bold text-lg ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:border-skin-primary'}`}
+                                    className={`input input-bordered flex-1 bg-skin-base border-skin-border text-skin-text placeholder-skin-muted focus:ring-skin-primary transition-all text-center font-bold text-lg uppercase ${error ? 'border-red-500 focus:border-red-500' : 'focus:border-skin-primary'}`}
                                 />
-                                {error && (
-                                    <motion.span
-                                        initial={{ opacity: 0, y: -5 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="text-xs text-red-500 font-bold absolute -bottom-5 left-0 right-0 text-center"
-                                    >
-                                        {error}
-                                    </motion.span>
-                                )}
+                                <input
+                                    type="text"
+                                    placeholder="#0000"
+                                    value={discriminator}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                        setDiscriminator(val);
+                                    }}
+                                    maxLength={4}
+                                    className="input input-bordered w-24 bg-skin-base border-skin-border text-skin-text placeholder-skin-muted focus:ring-skin-primary transition-all text-center font-mono font-bold text-lg tracking-widest"
+                                />
+                            </div>
+
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="text-xs text-red-400 font-bold mt-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20"
+                                >
+                                    {error}
+                                </motion.div>
+                            )}
+
+                            {/* Helper Text */}
+                            <div className="text-[10px] text-skin-muted text-center mt-2 max-w-xs leading-tight opacity-70">
+                                <span className="font-bold">Dica:</span> Usa o teu código <span className="font-mono">#0000</span> apenas para recuperar uma conta antiga. Para novos jogos, deixa vazio!
                             </div>
                         </div>
 

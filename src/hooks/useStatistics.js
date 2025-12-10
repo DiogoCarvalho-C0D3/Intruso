@@ -15,11 +15,33 @@ const INITIAL_STATS = {
     equippedReward: null // ID of equipped helper
 };
 
-export function useStatistics() {
+export function useStatistics(userId = null) {
+    // Dynamic key based on userId. If no userId, use temporary/global or handle gracefully.
+    // However, for migration, we need to know if we are logged in.
+    const storageKey = userId ? `intruso_stats_${userId}` : null;
+
     const [stats, setStats] = useState(() => {
+        if (!storageKey) return INITIAL_STATS; // No user, no stats (or empty)
+
         try {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            return saved ? { ...INITIAL_STATS, ...JSON.parse(saved) } : INITIAL_STATS;
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                return { ...INITIAL_STATS, ...JSON.parse(saved) };
+            }
+
+            // Migration Only Logic:
+            // If we have a userId but no stats for it yet, checks if we have LEGACY global stats
+            // intended for this device's owner.
+            const legacy = localStorage.getItem('intruso_stats');
+            if (legacy) {
+                // We found legacy stats. Let's claim them for this user!
+                // Caveat: If multiple users login, the first one claims the legacy stats. 
+                // This is acceptable for a personal device.
+                const legacyStats = JSON.parse(legacy);
+                return { ...INITIAL_STATS, ...legacyStats };
+            }
+
+            return INITIAL_STATS;
         } catch (e) {
             console.error('Stats load error', e);
             return INITIAL_STATS;
@@ -30,8 +52,10 @@ export function useStatistics() {
 
     // Save to local storage whenever stats change
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
-    }, [stats]);
+        if (storageKey) {
+            localStorage.setItem(storageKey, JSON.stringify(stats));
+        }
+    }, [stats, storageKey]);
 
     const checkMissions = (currentStats) => {
         const completedMissions = [];

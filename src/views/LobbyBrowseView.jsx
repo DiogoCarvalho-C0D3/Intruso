@@ -13,7 +13,7 @@ import { REWARDS_MAP } from '../data/missions';
 
 export default function LobbyBrowseView() {
     const { currentUser, logout, updateProfile, createRoom, joinRoom, publicRooms, onlineUsers, isConnected, error } = useGame();
-    const { stats, resetStats, equipReward } = useStatistics();
+    const { stats, resetStats, equipReward } = useStatistics(currentUser?.id);
     const navigate = useNavigate();
     const [joinCode, setJoinCode] = useState('');
     const [isStatsOpen, setIsStatsOpen] = useState(false);
@@ -44,7 +44,10 @@ export default function LobbyBrowseView() {
             <div className="flex items-center gap-3">
                 <Avatar name={currentUser?.name} seed={currentUser?.avatarSeed} size="sm" accessory={currentUser?.accessory} />
                 <div className="flex flex-col">
-                    <span className="font-bold text-sm leading-none text-skin-text">{currentUser?.name}</span>
+                    <span className="font-bold text-sm leading-none text-skin-text">
+                        {currentUser?.name}
+                        <span className="text-skin-muted font-normal opacity-50 ml-0.5">#{currentUser?.discriminator}</span>
+                    </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
                         {isConnected ? (
                             <span className="text-emerald-400">● Online</span>

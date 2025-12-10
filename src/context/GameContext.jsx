@@ -131,28 +131,94 @@ export const GameProvider = ({ children }) => {
         // Also force meta theme-color if possible (optional)
     }, [currentUser]);
 
-    const login = (name, avatarSeed, theme = 'theme-slate', accessory = null) => {
-        // Check for existing user to preserve ID (stats/history continuity)
-        const saved = localStorage.getItem('intruso_user');
-        let user;
+    // Generate a random 4 digit discriminator
+    const generateDiscriminator = () => Math.floor(1000 + Math.random() * 9000).toString();
 
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            user = {
-                ...parsed,
-                name,
-                avatarSeed: avatarSeed || name,
-                theme: theme || parsed.theme || 'theme-slate',
-                accessory // Save accessory
-            };
-        } else {
-            user = { id: uuidv4(), name, avatarSeed: avatarSeed || name, theme, accessory };
+    const login = (name, avatarSeed, theme = 'theme-slate', accessory = null, explicitDiscriminator = null) => {
+        // Load known users
+        let knownUsers = JSON.parse(localStorage.getItem('intruso_known_users') || '{}');
+        const cleanName = name.trim();
+        const lowerName = cleanName.toLowerCase();
+
+        // Migration: Check if legacy simple-key format exists and migrate it
+        if (knownUsers[lowerName] && !knownUsers[lowerName].id) {
+            // It's a user object directly?
+            // Previous code: knownUsers[userKey] = user;
+            // We can keep it or migrate it to key#discriminator
+            const legacy = knownUsers[lowerName];
+            const newKey = `${lowerName}#${legacy.discriminator}`;
+            knownUsers[newKey] = { ...legacy, lastLogin: Date.now() };
+            delete knownUsers[lowerName];
         }
 
+        let user;
+
+        if (explicitDiscriminator) {
+            // STRICT MODE: User provided a code. Must match exactly.
+            const targetKey = `${lowerName}#${explicitDiscriminator}`;
+            const existing = knownUsers[targetKey];
+
+            if (existing) {
+                user = {
+                    ...existing,
+                    name: cleanName,
+                    avatarSeed: avatarSeed || existing.avatarSeed, // Keep existing avatar preferrably? Or update?
+                    // User probably wants to Log In, not overwrite avatar just by typing name.
+                    // But if they changed seed in UI... allow update.
+                    theme: theme || existing.theme || 'theme-slate',
+                    accessory: accessory !== undefined ? accessory : existing.accessory,
+                    lastLogin: Date.now()
+                };
+            } else {
+                // User entered a specific code that doesn't exist.
+                // We shouldn't create "Diogo#1234" just because they typed it if it doesn't exist?
+                // Or maybe they are trying to "recover" a lost account from another device?
+                // LocalStorage can't recover from another device.
+                // So this is an error: "Account not found on this device".
+                throw new Error(`Agente ${cleanName}#${explicitDiscriminator} não encontrado.`);
+            }
+        } else {
+            // AUTO MODE: Find most recent profile with this name
+            // Filter keys starting with name#
+            const candidates = Object.values(knownUsers).filter(u => u.name.toLowerCase() === lowerName);
+
+            if (candidates.length > 0) {
+                // Sort by lastLogin (descending)
+                candidates.sort((a, b) => (b.lastLogin || 0) - (a.lastLogin || 0));
+                const existing = candidates[0]; // Most recent
+
+                user = {
+                    ...existing,
+                    name: cleanName,
+                    avatarSeed: avatarSeed || existing.avatarSeed,
+                    theme: theme || existing.theme || 'theme-slate',
+                    accessory: accessory !== undefined ? accessory : existing.accessory,
+                    lastLogin: Date.now()
+                };
+            } else {
+                // Create NEW identity
+                user = {
+                    id: uuidv4(),
+                    name: cleanName,
+                    discriminator: generateDiscriminator(),
+                    avatarSeed: avatarSeed || cleanName,
+                    theme,
+                    accessory,
+                    lastLogin: Date.now()
+                };
+            }
+        }
+
+        // Save to current session
         localStorage.setItem('intruso_user', JSON.stringify(user));
         setCurrentUser(user);
 
-        // Update auth for future reconnections
+        // Update Known Users record (Key by Name#Discriminator)
+        const storageKey = `${user.name.toLowerCase()}#${user.discriminator}`;
+        knownUsers[storageKey] = user;
+        localStorage.setItem('intruso_known_users', JSON.stringify(knownUsers));
+
+        // Update auth
         socket.auth = { userId: user.id };
         if (socket.connected) {
             socket.emit('user_login', { user });
@@ -164,11 +230,19 @@ export const GameProvider = ({ children }) => {
 
     const updateProfile = (updates) => {
         if (!currentUser) return;
-        const updated = { ...currentUser, ...updates };
+        const updated = { ...currentUser, ...updates, lastLogin: Date.now() };
+
+        // Update session
         localStorage.setItem('intruso_user', JSON.stringify(updated));
         setCurrentUser(updated);
-        // Sync with server if needed for live updates? 
-        // Usually login does this, but we can emit a 'profile_update' or just 'user_login' again
+
+        // Update known users
+        const knownUsers = JSON.parse(localStorage.getItem('intruso_known_users') || '{}');
+        // We must use strict key: Name#Discriminator
+        const storageKey = `${updated.name.toLowerCase()}#${updated.discriminator}`;
+        knownUsers[storageKey] = updated;
+        localStorage.setItem('intruso_known_users', JSON.stringify(knownUsers));
+
         socket.emit('user_login', { user: updated });
     };
 
