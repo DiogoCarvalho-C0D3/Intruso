@@ -4,7 +4,7 @@ import { useGame } from '../context/GameContext';
 import { CATEGORIES, getRandomWord } from '../data/categories';
 import Avatar from '../components/ui/Avatar';
 import Layout from '../components/layout/Layout';
-import { Minus, Plus, Edit2, LogOut, Copy, Check, Play, Crown } from 'lucide-react';
+import { Minus, Plus, Edit2, LogOut, Copy, Check, Play, Crown, Lock, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORY_ICONS = {
@@ -50,6 +50,27 @@ const SettingCounter = ({ label, value, onDecrease, onIncrease, min, max, isHost
                 <span className="bg-skin-card text-skin-text px-4 py-1.5 rounded-full font-bold border border-skin-border">{value}{suffix}</span>
             )}
         </div>
+    </div>
+
+);
+
+const SettingSwitch = ({ label, value, onChange, isHost }) => (
+    <div className="flex items-center justify-between bg-skin-base/50 p-3 rounded-xl border border-skin-border">
+        <span className="text-xs font-bold uppercase tracking-wider text-skin-muted">{label}</span>
+        {isHost ? (
+            <button
+                onClick={(e) => { e.stopPropagation(); onChange(!value); }}
+                className={`relative w-12 h-7 rounded-full transition-colors duration-200 ease-in-out border-2 border-transparent ${value ? 'bg-skin-primary' : 'bg-skin-card border-skin-border'}`}
+            >
+                <span
+                    className={`block w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${value ? 'translate-x-5' : 'translate-x-0'}`}
+                />
+            </button>
+        ) : (
+            <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full border ${value ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-skin-card text-skin-muted border-skin-border'}`}>
+                {value ? 'Sim' : 'Não'}
+            </span>
+        )}
     </div>
 );
 
@@ -276,9 +297,23 @@ export default function RoomView() {
                             <Copy size={16} className="text-skin-muted group-hover:text-skin-primary transition-colors" />
                         }
                     </button>
+
+
+                    {/* Private Room Toggle - New Location */}
+                    <button
+                        onClick={() => isHost && updateRoomSettings({ isPrivate: !currentRoom.isPrivate })}
+                        className={`flex items-center justify-center w-10 h-10 rounded-full border shadow-lg transition-all active:scale-95 ml-2 ${currentRoom.isPrivate
+                            ? 'bg-skin-primary text-white border-transparent'
+                            : 'bg-skin-card border-skin-border text-skin-muted hover:border-skin-primary hover:text-skin-primary'
+                            } ${!isHost ? 'opacity-50 cursor-default' : ''}`}
+                        title={currentRoom.isPrivate ? "Sala Privada (Toque para abrir)" : "Sala Pública (Toque para fechar)"}
+                        disabled={!isHost}
+                    >
+                        {currentRoom.isPrivate ? <Lock size={18} /> : <Globe size={18} />}
+                    </button>
                 </div>
 
-                {/* Players Grid */}
+                {/* Players List (Horizontal Scroll) */}
                 <div className="space-y-3">
                     <div className="flex items-center justify-between px-1">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-skin-muted">Agentes</h3>
@@ -287,25 +322,31 @@ export default function RoomView() {
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4 p-4 bg-skin-card/20 rounded-2xl border border-skin-border/50">
+                    <div className="flex overflow-x-auto pb-4 gap-4 px-2 -mx-2 snap-x hide-scrollbar">
                         {currentRoom.players.map(p => (
-                            <div key={p.id} className="flex flex-col items-center gap-2 relative group">
+                            <div key={p.id} className="flex flex-col items-center gap-2 relative group min-w-[70px] snap-center">
                                 <div className="relative">
-                                    <Avatar name={p.name} seed={p.avatarSeed} size="md" className={`border-2 shadow-lg transition-transform hover:scale-105 ${p.id === currentRoom.hostId ? 'border-yellow-500/50' : 'border-skin-border'}`} />
+                                    <Avatar
+                                        name={p.name}
+                                        seed={p.avatarSeed}
+                                        size="md"
+                                        className={`border-2 shadow-lg transition-transform hover:scale-105 ${p.id === currentRoom.hostId ? 'border-yellow-500/50' : 'border-skin-border'}`}
+                                        accessory={p.accessory}
+                                    />
                                     {p.id === currentRoom.hostId && (
-                                        <div className="absolute -top-2 -right-2 bg-yellow-500 text-black p-1 rounded-full shadow-lg">
+                                        <div className="absolute -top-2 -left-2 bg-yellow-500 text-black p-1 rounded-full shadow-lg z-10">
                                             <Crown size={10} fill="currentColor" />
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[10px] text-skin-muted font-bold truncate max-w-full px-1 py-0.5 rounded bg-skin-card/50">
+                                <span className="text-[10px] text-skin-muted font-bold truncate max-w-full px-1 py-0.5 rounded bg-skin-card/50 w-full text-center">
                                     {p.name}
                                 </span>
                             </div>
                         ))}
-                        {/* Empty slots */}
-                        {Array.from({ length: Math.max(0, (currentRoom.settings.maxPlayers || 8) - currentRoom.players.length) }).slice(0, 8).map((_, i) => (
-                            <div key={`e-${i}`} className="flex flex-col items-center gap-2 opacity-20">
+                        {/* Empty slots placeholders */}
+                        {Array.from({ length: Math.max(0, (currentRoom.settings.maxPlayers || 8) - currentRoom.players.length) }).slice(0, 4).map((_, i) => (
+                            <div key={`e-${i}`} className="flex flex-col items-center gap-2 opacity-20 min-w-[70px]">
                                 <div className="w-12 h-12 rounded-full border-2 border-dashed border-skin-muted bg-skin-card/50"></div>
                             </div>
                         ))}
@@ -322,6 +363,8 @@ export default function RoomView() {
                         <SettingCounter label="Intrusos" value={currentRoom.settings.impostorCount} isHost={isHost} min={1} max={maxConfigurableImpostors} onDecrease={() => updateRoomSettings({ impostorCount: currentRoom.settings.impostorCount - 1 })} onIncrease={() => updateRoomSettings({ impostorCount: currentRoom.settings.impostorCount + 1 })} />
 
                         <SettingCounter label="Lotação" value={currentRoom.settings.maxPlayers || 8} isHost={isHost} min={3} max={9} onDecrease={() => updateRoomSettings({ maxPlayers: (currentRoom.settings.maxPlayers || 8) - 1 })} onIncrease={() => updateRoomSettings({ maxPlayers: (currentRoom.settings.maxPlayers || 8) + 1 })} />
+
+
 
                         {/* Difficulty Stepper */}
                         <div className="flex items-center justify-between bg-skin-base/50 p-3 rounded-xl border border-skin-border">
@@ -391,6 +434,6 @@ export default function RoomView() {
                     </div>
                 </div>
             </div>
-        </Layout>
+        </Layout >
     );
 }

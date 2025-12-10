@@ -131,16 +131,22 @@ export const GameProvider = ({ children }) => {
         // Also force meta theme-color if possible (optional)
     }, [currentUser]);
 
-    const login = (name, avatarSeed, theme = 'theme-slate') => {
+    const login = (name, avatarSeed, theme = 'theme-slate', accessory = null) => {
         // Check for existing user to preserve ID (stats/history continuity)
         const saved = localStorage.getItem('intruso_user');
         let user;
 
         if (saved) {
             const parsed = JSON.parse(saved);
-            user = { ...parsed, name, avatarSeed: avatarSeed || name, theme: theme || parsed.theme || 'theme-slate' };
+            user = {
+                ...parsed,
+                name,
+                avatarSeed: avatarSeed || name,
+                theme: theme || parsed.theme || 'theme-slate',
+                accessory // Save accessory
+            };
         } else {
-            user = { id: uuidv4(), name, avatarSeed: avatarSeed || name, theme };
+            user = { id: uuidv4(), name, avatarSeed: avatarSeed || name, theme, accessory };
         }
 
         localStorage.setItem('intruso_user', JSON.stringify(user));

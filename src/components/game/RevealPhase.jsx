@@ -55,7 +55,7 @@ export default function RevealPhase({ gameState, onReady }) {
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="relative">
-                                            <Avatar seed={p.avatarSeed || p.name} size="sm" className="ring-2 ring-skin-border" />
+                                            <Avatar name={p.name} seed={p.avatarSeed || p.name} size="sm" className="ring-2 ring-skin-border" accessory={p.accessory} />
                                             {isReady && (
                                                 <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5 border-2 border-skin-card">
                                                     <Check size={10} className="text-white" strokeWidth={4} />

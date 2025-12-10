@@ -90,7 +90,8 @@ export class GameManager {
             status: 'LOBBY',
             gameState: null,
             createdAt: Date.now(),
-            isPublic: true,
+            createdAt: Date.now(),
+            isPrivate: false,
         };
 
         rooms[roomId] = newRoom;
@@ -140,6 +141,9 @@ export class GameManager {
         if (room) {
             if (settings.name) {
                 room.name = settings.name;
+            }
+            if (typeof settings.isPrivate !== 'undefined') {
+                room.isPrivate = settings.isPrivate;
             }
             // Update other settings deeply if needed, or spread
             // Filter out 'name' from settings object itself if we want to keep it clean, but it doesn't hurt.
@@ -236,7 +240,7 @@ export class GameManager {
 
     getPublicRooms() {
         return Object.values(rooms)
-            .filter(r => r.status === 'LOBBY' && r.isPublic)
+            .filter(r => r.status === 'LOBBY' && !r.isPrivate)
             .sort((a, b) => b.createdAt - a.createdAt);
     }
 }

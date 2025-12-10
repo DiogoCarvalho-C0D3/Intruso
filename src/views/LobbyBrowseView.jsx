@@ -1,20 +1,24 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useGame } from '../context/GameContext';
-import { useStatistics } from '../hooks/useStatistics';
-import Avatar from '../components/ui/Avatar';
-import StatsModal from '../components/ui/StatsModal';
-import SettingsModal from '../components/ui/SettingsModal';
-import Layout from '../components/layout/Layout';
-import { Plus, Search, LogOut, WifiOff, Users, ArrowRight, BarChart2, Settings } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { REWARDS_MAP } from '../data/missions'; // Import rewards map
+
+// ... (in component)
+<MissionsModal
+    isOpen={isMissionsOpen}
+    onClose={() => setIsMissionsOpen(false)}
+    stats={stats}
+    onEquip={(id) => {
+        equipReward(id);
+        const emoji = id ? REWARDS_MAP[id]?.emoji : null;
+        updateProfile({ accessory: emoji });
+    }}
+/>
 
 export default function LobbyBrowseView() {
     const { currentUser, logout, updateProfile, createRoom, joinRoom, publicRooms, onlineUsers, isConnected, error } = useGame();
-    const { stats, resetStats } = useStatistics();
+    const { stats, resetStats, equipReward } = useStatistics();
     const navigate = useNavigate();
     const [joinCode, setJoinCode] = useState('');
     const [isStatsOpen, setIsStatsOpen] = useState(false);
+    const [isMissionsOpen, setIsMissionsOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     useEffect(() => {
@@ -39,7 +43,7 @@ export default function LobbyBrowseView() {
     const header = (
         <>
             <div className="flex items-center gap-3">
-                <Avatar name={currentUser?.name} seed={currentUser?.avatarSeed} size="sm" />
+                <Avatar name={currentUser?.name} seed={currentUser?.avatarSeed} size="sm" accessory={currentUser?.accessory} />
                 <div className="flex flex-col">
                     <span className="font-bold text-sm leading-none text-skin-text">{currentUser?.name}</span>
                     <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
@@ -52,6 +56,13 @@ export default function LobbyBrowseView() {
                 </div>
             </div>
             <div className="flex items-center gap-2">
+                <button
+                    onClick={() => setIsMissionsOpen(true)}
+                    className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-pink-400 hover:text-pink-500 hover:bg-pink-500/10 transition-colors"
+                    title="Missões"
+                >
+                    <Gift size={18} />
+                </button>
                 <button
                     onClick={() => setIsSettingsOpen(true)}
                     className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-skin-muted hover:text-skin-text hover:bg-skin-border transition-colors"
@@ -84,6 +95,17 @@ export default function LobbyBrowseView() {
                 onClose={() => setIsStatsOpen(false)}
                 stats={stats}
                 onReset={resetStats}
+            />
+
+            <MissionsModal
+                isOpen={isMissionsOpen}
+                onClose={() => setIsMissionsOpen(false)}
+                stats={stats}
+                onEquip={(id) => {
+                    equipReward(id);
+                    const emoji = id ? REWARDS_MAP[id]?.emoji : null;
+                    updateProfile({ accessory: emoji });
+                }}
             />
 
             <SettingsModal
@@ -150,7 +172,7 @@ export default function LobbyBrowseView() {
                         ) : (
                             onlineUsers.map((u, i) => (
                                 <div key={u.socketId || i} className="flex flex-col items-center gap-2 min-w-[60px]">
-                                    <Avatar name={u.name} seed={u.avatarSeed || u.name} size="sm" className="border-2 border-skin-border" />
+                                    <Avatar name={u.name} seed={u.avatarSeed || u.name} size="sm" className="border-2 border-skin-border" accessory={u.accessory} />
                                     <span className="text-[10px] font-medium text-skin-muted truncate max-w-full">{u.name}</span>
                                 </div>
                             ))

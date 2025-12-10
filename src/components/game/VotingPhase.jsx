@@ -87,7 +87,7 @@ export default function VotingPhase({ gameState, onVote }) {
                                 className={`relative p-4 rounded-2xl transition-all duration-200 group ${isSelected ? 'bg-skin-primary/10 border-2 border-skin-primary shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.2)]' : 'bg-skin-card border-2 border-transparent hover:bg-skin-base'}`}
                             >
                                 <div className="flex flex-col items-center gap-3">
-                                    <Avatar name={p.name} size="lg" className={isSelected ? 'scale-110 transition-transform' : ''} />
+                                    <Avatar name={p.name} seed={p.avatarSeed} size="lg" className={isSelected ? 'scale-110 transition-transform' : ''} accessory={p.accessory} />
                                     <span className={`font-bold text-sm truncate w-full ${isSelected ? 'text-skin-primary' : 'text-skin-muted'}`}>{p.name}</span>
                                 </div>
                                 {isSelected && (

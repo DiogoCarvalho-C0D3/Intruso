@@ -1,7 +1,7 @@
 
 import { useMemo } from 'react';
 
-export default function Avatar({ name, seed: dataSeed, size = 'md', className = '', style = {} }) {
+export default function Avatar({ name, seed: dataSeed, size = 'md', className = '', style = {}, accessory = null }) {
 
     // Define size in pixels for the container to ensure image fits
     const getPixelSize = () => {
@@ -36,6 +36,11 @@ export default function Avatar({ name, seed: dataSeed, size = 'md', className = 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => { e.target.style.display = 'none'; }} // Fallback if API fails (could show initials here)
             />
+            {accessory && (
+                <div className="absolute -top-1 -right-1 text-2xl drop-shadow-md filter shadow-black animate-bounce-slight" style={{ fontSize: (parseInt(getPixelSize()) * 0.4) + 'px' }}>
+                    {accessory}
+                </div>
+            )}
         </div>
     );
 }
