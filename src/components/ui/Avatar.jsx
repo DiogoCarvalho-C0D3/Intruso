@@ -1,5 +1,5 @@
-
 import { useMemo } from 'react';
+import { REWARDS_MAP } from '../../data/missions';
 
 export default function Avatar({ name, seed: dataSeed, size = 'md', className = '', style = {}, accessory = null }) {
 
@@ -20,14 +20,17 @@ export default function Avatar({ name, seed: dataSeed, size = 'md', className = 
         return `https://api.dicebear.com/9.x/fun-emoji/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
     }, [name, dataSeed]);
 
+    // Resolve accessory frame
+    const frameClass = accessory && REWARDS_MAP[accessory]?.frameClass ? REWARDS_MAP[accessory].frameClass : '';
+
     return (
         <div
-            className={`rounded-full flex items-center justify-center overflow-hidden bg-slate-700 ${className}`}
+            className={`rounded-full flex items-center justify-center overflow-hidden bg-slate-700 ${className} ${frameClass}`}
             style={{
                 width: style.width || getPixelSize() + 'px',
                 height: style.height || getPixelSize() + 'px',
                 minWidth: style.width || getPixelSize() + 'px', // Prevent squishing
-                border: style.border || '2px solid rgba(255,255,255,0.1)',
+                border: frameClass ? undefined : (style.border || '2px solid rgba(255,255,255,0.1)'), // Only apply default border if no frame
                 ...style, // Allow overriding
             }}
         ><img
@@ -36,11 +39,6 @@ export default function Avatar({ name, seed: dataSeed, size = 'md', className = 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => { e.target.style.display = 'none'; }} // Fallback if API fails (could show initials here)
             />
-            {accessory && (
-                <div className="absolute -top-1 -right-1 text-2xl drop-shadow-md filter shadow-black animate-bounce-slight" style={{ fontSize: (parseInt(getPixelSize()) * 0.4) + 'px' }}>
-                    {accessory}
-                </div>
-            )}
         </div>
     );
 }

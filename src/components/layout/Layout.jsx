@@ -18,7 +18,7 @@ export default function Layout({
             <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-skin-base z-50" />
 
             {/* Content Container */}
-            <div className="flex-1 flex flex-col w-full max-w-lg mx-auto bg-skin-base h-full relative shadow-2xl">
+            <div className="flex-1 flex flex-col w-full max-w-lg mx-auto bg-skin-base h-full relative shadow-2xl z-10">
 
                 {/* Header */}
                 {header && (

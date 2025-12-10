@@ -23,8 +23,8 @@ export default function HomeView() {
 
     const navigate = useNavigate();
 
-    // Derived equipped emoji
-    const equippedEmoji = stats.equippedReward ? REWARDS_MAP[stats.equippedReward]?.emoji : null;
+    // Derived equipped reward (Frame ID)
+    const equippedAccessory = stats.equippedReward || null;
 
     useEffect(() => {
         if (currentUser) {
@@ -49,8 +49,8 @@ export default function HomeView() {
             return;
         }
 
-        // Pass equippedEmoji as accessory
-        login(trimmedName, avatarSeed, undefined, equippedEmoji);
+        // Pass equippedAccessory
+        login(trimmedName, avatarSeed, undefined, equippedAccessory);
         navigate('/lobby');
     };
 
@@ -123,7 +123,7 @@ export default function HomeView() {
                                     seed={avatarSeed}
                                     size="xl"
                                     className={`shadow-2xl border-4 transition-colors ${error ? 'border-red-500' : 'border-skin-border group-hover:border-skin-primary'}`}
-                                    accessory={equippedEmoji}
+                                    accessory={equippedAccessory}
                                 />
                                 <div className="absolute -bottom-2 -right-2 bg-skin-primary text-white p-2 rounded-full shadow-lg group-hover:rotate-180 transition-transform duration-500">
                                     <RefreshCw size={16} />

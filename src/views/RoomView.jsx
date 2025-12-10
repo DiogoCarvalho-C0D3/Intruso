@@ -322,7 +322,7 @@ export default function RoomView() {
                         </span>
                     </div>
 
-                    <div className="flex overflow-x-auto pb-4 gap-4 px-2 -mx-2 snap-x hide-scrollbar">
+                    <div className="flex overflow-x-auto pb-4 pt-4 gap-4 px-2 -mx-2 snap-x hide-scrollbar">
                         {currentRoom.players.map(p => (
                             <div key={p.id} className="flex flex-col items-center gap-2 relative group min-w-[70px] snap-center">
                                 <div className="relative">

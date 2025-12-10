@@ -1,16 +1,15 @@
-import { REWARDS_MAP } from '../data/missions'; // Import rewards map
-
-// ... (in component)
-<MissionsModal
-    isOpen={isMissionsOpen}
-    onClose={() => setIsMissionsOpen(false)}
-    stats={stats}
-    onEquip={(id) => {
-        equipReward(id);
-        const emoji = id ? REWARDS_MAP[id]?.emoji : null;
-        updateProfile({ accessory: emoji });
-    }}
-/>
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useGame } from '../context/GameContext';
+import { useStatistics } from '../hooks/useStatistics';
+import Avatar from '../components/ui/Avatar';
+import StatsModal from '../components/ui/StatsModal';
+import MissionsModal from '../components/ui/MissionsModal';
+import SettingsModal from '../components/ui/SettingsModal';
+import Layout from '../components/layout/Layout';
+import { Plus, Search, LogOut, WifiOff, Users, ArrowRight, BarChart2, Settings, Gift } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { REWARDS_MAP } from '../data/missions';
 
 export default function LobbyBrowseView() {
     const { currentUser, logout, updateProfile, createRoom, joinRoom, publicRooms, onlineUsers, isConnected, error } = useGame();
@@ -103,8 +102,8 @@ export default function LobbyBrowseView() {
                 stats={stats}
                 onEquip={(id) => {
                     equipReward(id);
-                    const emoji = id ? REWARDS_MAP[id]?.emoji : null;
-                    updateProfile({ accessory: emoji });
+                    // Pass ID directly so Avatar can lookup frame class
+                    updateProfile({ accessory: id });
                 }}
             />
 

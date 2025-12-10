@@ -1,19 +1,20 @@
 import { useGame } from '../../context/GameContext';
 
 const DECORATIONS = [
-    { emoji: '🎅', top: '5%', left: '5%', rotate: '-10deg', size: '2rem' },
-    { emoji: '🎄', bottom: '15%', right: '5%', rotate: '5deg', size: '3rem' },
-    { emoji: '🎁', bottom: '5%', left: '10%', rotate: '15deg', size: '2rem' },
-    { emoji: '🦌', top: '15%', right: '10%', rotate: '-5deg', size: '2.5rem' },
-    { emoji: '⛄', top: '50%', left: '-2%', rotate: '10deg', size: '2rem', opacity: 0.5 },
-    { emoji: '🍬', bottom: '40%', right: '-2%', rotate: '-20deg', size: '1.5rem', opacity: 0.6 },
-    { emoji: '🌿', top: '0', left: '50%', rotate: '0deg', size: '3rem', transform: 'translateX(-50%)' }, // Mistletoe/Holly center
+    { emoji: '✨', top: '10%', left: '8%', rotate: '0deg', size: '1.5rem', opacity: 0.6 },
+    { emoji: '🎄', bottom: '12%', right: '8%', rotate: '5deg', size: '2.5rem', opacity: 0.8 },
+    { emoji: '❄️', bottom: '8%', left: '12%', rotate: '15deg', size: '2rem', opacity: 0.5 },
+    { emoji: '⭐', top: '15%', right: '12%', rotate: '-5deg', size: '1.8rem', opacity: 0.7 },
+    { emoji: '🌨️', top: '45%', left: '2%', rotate: '0deg', size: '2rem', opacity: 0.4 },
+    { emoji: '🔔', bottom: '35%', right: '2%', rotate: '-15deg', size: '1.5rem', opacity: 0.6 },
+    { emoji: '🎀', top: '5%', left: '50%', rotate: '0deg', size: '2rem', transform: 'translateX(-50%)' },
 ];
 
 export default function ChristmasDecorations() {
     const { currentUser } = useGame();
 
     if (currentUser?.theme !== 'theme-christmas') return null;
+    return null; // Force disable per user request for cleaner UI
 
     return (
         <div className="fixed inset-0 pointer-events-none z-[1] overflow-hidden">
