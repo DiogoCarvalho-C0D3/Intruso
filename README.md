@@ -3,11 +3,13 @@
 **Intruso** é um jogo de dedução social multijogador em tempo real, inspirado em clássicos como *Spyfall* e *Undercover*.
 Um jogador é o **Intruso** e não sabe a palavra secreta; os outros (Civis) sabem a palavra. O objetivo é descobrir quem mente!
 
-## ✨ Novidades da Versão 2.0
+## ✨ Novidades da Versão 1.4 (Identity & Content Update)
 
-*   **🆔 Identidade Persistente**: Cria o teu Agente único (`Nome#Tag`). O jogo "lembra-se" de ti e das tuas estatísticas, mesmo que mudes de dispositivo.
-*   **💾 Cloud Save**: Histórico e conquistas guardados na nuvem (via MongoDB) ou localmente.
-*   **🏆 Sistema de Recompensas**: Completa missões para desbloquear molduras exclusivas para o teu Avatar (ex: "Glória Dourada").
+*   **🆔 Identidade Persistente**: Cria o teu Agente único (`Nome` + `PIN`). O jogo "lembra-se" de ti, da tua selfie e das tuas estatísticas.
+*   **📚 Conteúdo Expandido**: Centenas de novas palavras adicionadas a todas as categorias.
+*   **✏️ Oficina de Baralhos**: Cria os teus próprios packs de palavras e joga com amigos.
+*   **💾 Cloud Save**: Histórico e conquistas guardados na nuvem (via MongoDB).
+*   **🏆 Sistema de Recompensas**: Completa missões para desbloquear molduras exclusivas.
 *   **❄️ Temas Dinâmicos**: Inclui modo de Natal e outros temas visuais.
 
 ## 🚀 Tecnologias

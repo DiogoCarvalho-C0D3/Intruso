@@ -6,7 +6,7 @@ import Avatar from '../components/ui/Avatar';
 import MissionsModal from '../components/ui/MissionsModal';
 import SettingsModal from '../components/ui/SettingsModal';
 import Layout from '../components/layout/Layout';
-import { Plus, Search, LogOut, WifiOff, Users, ArrowRight, BarChart2, Settings, Gift, Trophy } from 'lucide-react';
+import { Plus, Search, LogOut, WifiOff, Users, ArrowRight, BarChart2, Settings, Gift, Trophy, Book } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { REWARDS_MAP } from '../data/missions';
 
@@ -50,7 +50,6 @@ export default function LobbyBrowseView() {
                 <div className="flex flex-col">
                     <span className="font-bold text-sm leading-none text-skin-text">
                         {currentUser?.name}
-                        <span className="text-skin-muted font-normal opacity-50 ml-0.5">#{currentUser?.discriminator}</span>
                     </span>
                     <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
                         {isConnected ? (
@@ -76,6 +75,8 @@ export default function LobbyBrowseView() {
                 >
                     <Settings size={18} />
                 </button>
+
+
 
                 <button
                     onClick={() => navigate('/leaderboard')}

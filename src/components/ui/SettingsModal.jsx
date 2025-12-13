@@ -1,7 +1,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, RefreshCw, Check, Camera } from 'lucide-react';
+import { X, RefreshCw, Check, Camera, Book } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Avatar from './Avatar';
 import { compressAvatar } from '../../utils/image';
 
@@ -14,6 +15,7 @@ const THEMES = [
 ];
 
 export default function SettingsModal({ isOpen, onClose, user, onSave }) {
+    const navigate = useNavigate();
     const [name, setName] = useState('');
     const [avatarSeed, setAvatarSeed] = useState('');
     const [avatarImage, setAvatarImage] = useState(null);
@@ -150,6 +152,10 @@ export default function SettingsModal({ isOpen, onClose, user, onSave }) {
                                 </div>
                             </div>
 
+                            <button onClick={() => navigate('/decks')} className="btn bg-cyan-500/10 text-cyan-500 border-cyan-500/20 hover:bg-cyan-500/20 hover:border-cyan-500/50 w-full mb-2">
+                                <Book size={18} className="mr-2" />
+                                Ir para a Oficina
+                            </button>
                             <button onClick={handleSave} className="btn btn-primary w-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
                                 Guardar Alterações
                             </button>

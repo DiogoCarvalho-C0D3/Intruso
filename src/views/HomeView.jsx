@@ -12,47 +12,75 @@ import { compressAvatar } from '../utils/image';
 export default function HomeView() {
     const { login, currentUser } = useGame();
 
+    const [authMode, setAuthMode] = useState('LOGIN'); // LOGIN, REGISTER, GUEST
     const [name, setName] = useState('');
-    const [discriminator, setDiscriminator] = useState('');
+    const [pin, setPin] = useState('');
+    const [confirmPin, setConfirmPin] = useState('');
+
+    // Avatar State
     const [avatarSeed, setAvatarSeed] = useState(Math.random().toString());
     const [avatarImage, setAvatarImage] = useState(null);
-    const [avatarType, setAvatarType] = useState('dicebear'); // 'dicebear' | 'custom'
+    const [avatarType, setAvatarType] = useState('dicebear');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
 
-    // Derived equipped reward (Frame ID)
-    const equippedAccessory = null; // No accessories before login
-
     useEffect(() => {
-        if (currentUser) {
-            navigate('/lobby');
-        }
+        if (currentUser) navigate('/lobby');
     }, [currentUser, navigate]);
 
-    const handleEnter = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+
         const trimmedName = name.trim();
+        if (!trimmedName) return setError('Nome obrigatório.');
+        if (trimmedName.length < 2) return setError('Nome muito curto.');
 
-        if (!trimmedName) {
-            setError('Precisas de um nome, agente!');
-            return;
-        }
-        if (trimmedName.length < 2) {
-            setError('Nome demasiado curto (min. 2).');
-            return;
-        }
-        if (trimmedName.length > 12) {
-            setError('Nome demasiado longo (max. 12).');
-            return;
+        // PIN Validation for Login/Register
+        if (pin.length !== 4) return setError('PIN deve ter 4 dígitos.');
+        if (!/^\d+$/.test(pin)) return setError('PIN deve ser numérico.');
+
+        if (authMode === 'REGISTER') {
+            if (pin !== confirmPin) return setError('Os PINs não coincidem.');
         }
 
-        // Pass equippedAccessory and Discriminator and Avatar Data
+        setIsLoading(true);
         try {
-            login(trimmedName, avatarSeed, undefined, equippedAccessory, discriminator || null, avatarImage, avatarType);
+            await login(authMode, {
+                name: trimmedName,
+                pin,
+                avatarSeed,
+                avatarType,
+                avatarImage
+            });
             navigate('/lobby');
-        } catch (e) {
-            setError(e.message);
+        } catch (err) {
+            setError(err.message);
+            setIsLoading(false);
+        }
+    };
+
+    const handleGuestEntry = async () => {
+        setError('');
+        const trimmedName = name.trim();
+        if (!trimmedName) return setError('Nome obrigatório.');
+        if (trimmedName.length < 2) return setError('Nome muito curto.');
+
+        setIsLoading(true);
+        try {
+            await login('GUEST', {
+                name: trimmedName,
+                pin: null, // Guest has no PIN
+                avatarSeed,
+                avatarType,
+                avatarImage
+            });
+            navigate('/lobby');
+        } catch (err) {
+            setError(err.message);
+            setIsLoading(false);
         }
     };
 
@@ -64,8 +92,7 @@ export default function HomeView() {
                 setAvatarImage(compressed);
                 setAvatarType('custom');
             } catch (err) {
-                console.error("Compression failed", err);
-                setError("Erro ao carregar imagem.");
+                setError("Erro na imagem.");
             }
         }
     };
@@ -76,116 +103,195 @@ export default function HomeView() {
         setAvatarImage(null);
     };
 
-    const handleNameChange = (e) => {
-        setName(e.target.value);
-        if (error) setError('');
-    };
-
     return (
         <Layout className="flex flex-col items-center justify-center min-h-full">
-            {/* Removed Pre-Login Stats/Missions Buttons */}
-
-            <div className="w-full max-w-sm flex flex-col items-center justify-center flex-1 py-10">
+            <div className="w-full max-w-sm flex flex-col items-center justify-center flex-1 py-10 px-4">
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="mb-12 text-center"
+                    className="mb-8 text-center"
                 >
-                    <h1 className="text-6xl font-black bg-clip-text text-transparent bg-gradient-to-br from-skin-text to-skin-muted mb-2 tracking-tighter pb-2 px-2">
+                    <h1 className="text-6xl font-black bg-clip-text text-transparent bg-gradient-to-br from-skin-text to-skin-muted mb-2 tracking-tighter">
                         INTRUSO
                     </h1>
                     <p className="text-skin-muted font-medium tracking-wide">Descobre quem mente.</p>
                 </motion.div>
 
                 <motion.div
-                    className="card w-full shadow-2xl shadow-skin-primary/10 bg-skin-card/80 backdrop-blur"
+                    className="card w-full shadow-2xl shadow-skin-primary/10 bg-skin-card/80 backdrop-blur overflow-hidden"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2 }}
                 >
-                    <form onSubmit={handleEnter} className="flex flex-col items-center p-2">
-                        <div className="text-center mb-6">
-                            <h2 className="text-lg font-bold text-skin-text mb-1">Identificação</h2>
-                            <p className="text-sm text-skin-muted">Quem és tu, agente?</p>
-                        </div>
-
-                        {/* Avatar Selection */}
-                        <div className="flex flex-col items-center gap-4 mb-6 w-full">
-                            <div className="relative group">
-                                <Avatar
-                                    name={name || '?'}
-                                    seed={avatarSeed}
-                                    image={avatarType === 'custom' ? avatarImage : null}
-                                    size="xl"
-                                    className={`shadow-2xl border-4 transition-colors ${error ? 'border-red-500' : 'border-skin-border group-hover:border-skin-primary'}`}
-                                    accessory={equippedAccessory}
-                                />
-
-                                {/* Refresh Button (Dicebear) */}
-                                <div
-                                    onClick={regenAvatar}
-                                    className="absolute -bottom-2 -right-2 bg-skin-primary text-white p-2 rounded-full shadow-lg cursor-pointer hover:rotate-180 transition-transform duration-500 z-10"
-                                >
-                                    <RefreshCw size={16} />
-                                </div>
-
-                                {/* Upload Button (Custom) */}
-                                <label className="absolute -bottom-2 -left-2 bg-skin-secondary text-white p-2 rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform z-10">
-                                    <Camera size={16} />
-                                    <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
-                                </label>
-                            </div>
-                            <span className="text-[10px] text-skin-muted uppercase tracking-widest font-bold">Mudar ou Carregar Foto</span>
-
-                            {/* Name Input & Tag */}
-                            <div className="w-full max-w-xs flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="NOME"
-                                    value={name}
-                                    onChange={handleNameChange}
-                                    maxLength={15}
-                                    className={`input input-bordered flex-1 bg-skin-base border-skin-border text-skin-text placeholder-skin-muted focus:ring-skin-primary transition-all text-center font-bold text-lg uppercase ${error ? 'border-red-500 focus:border-red-500' : 'focus:border-skin-primary'}`}
-                                />
-                                <input
-                                    type="text"
-                                    placeholder="#0000"
-                                    value={discriminator}
-                                    onChange={(e) => {
-                                        const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-                                        setDiscriminator(val);
-                                    }}
-                                    maxLength={4}
-                                    className="input input-bordered w-24 bg-skin-base border-skin-border text-skin-text placeholder-skin-muted focus:ring-skin-primary transition-all text-center font-mono font-bold text-lg tracking-widest"
-                                />
-                            </div>
-
-                            {error && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="text-xs text-red-400 font-bold mt-2 bg-red-500/10 px-3 py-1 rounded-full border border-red-500/20"
-                                >
-                                    {error}
-                                </motion.div>
-                            )}
-
-                            {/* Helper Text */}
-                            <div className="text-[10px] text-skin-muted text-center mt-2 max-w-xs leading-tight opacity-70">
-                                <span className="font-bold">Dica:</span> Usa o teu código <span className="font-mono">#0000</span> apenas para recuperar uma conta antiga. Para novos jogos, deixa vazio!
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="w-full flex flex-col items-center gap-4 mt-2">
+                    {/* Tabs */}
+                    <div className="flex border-b border-skin-border relative">
+                        {['LOGIN', 'REGISTER'].map(mode => (
                             <button
-                                type="submit"
-                                disabled={!name.trim()}
-                                className="btn btn-primary w-full max-w-xs font-bold shadow-lg shadow-skin-primary/20 disabled:opacity-50 disabled:shadow-none"
+                                key={mode}
+                                onClick={() => { setAuthMode(mode); setError(''); }}
+                                className="relative flex-1 py-4 text-xs font-bold tracking-widest outline-none"
                             >
-                                Identificar-me
+                                <span className={`relative z-10 transition-colors duration-200 ${authMode === mode ? 'text-skin-primary' : 'text-skin-muted hover:text-skin-text'}`}>
+                                    {mode === 'REGISTER' ? 'REGISTAR' : 'ENTRAR'}
+                                </span>
+
+                                {authMode === mode && (
+                                    <motion.div
+                                        layoutId="activeTab"
+                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-skin-primary"
+                                        initial={false}
+                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                    />
+                                )}
+
+                                {authMode === mode && (
+                                    <motion.div
+                                        layoutId="activeTabBg"
+                                        className="absolute inset-0 bg-gradient-to-t from-skin-primary/10 to-transparent"
+                                        initial={false}
+                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                    />
+                                )}
+
+                                {/* Hover Effect for all tabs */}
+                                <div className="absolute inset-0 bg-skin-base opacity-0 hover:opacity-10 transition-opacity duration-300" />
                             </button>
+                        ))}
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="flex flex-col items-center p-6 gap-6">
+
+                        {/* Avatar */}
+                        <div className="relative group">
+                            <Avatar
+                                name={name || '?'}
+                                seed={avatarSeed}
+                                image={avatarType === 'custom' ? avatarImage : null}
+                                size="lg"
+                                className="border-4 border-skin-border group-hover:border-skin-primary transition-colors"
+                            />
+                            <div onClick={regenAvatar} className="absolute -bottom-1 -right-1 bg-skin-primary text-white p-1.5 rounded-full cursor-pointer hover:rotate-180 transition-transform shadow-lg">
+                                <RefreshCw size={14} />
+                            </div>
+                            <label className="absolute -bottom-1 -left-1 bg-skin-secondary text-white p-1.5 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-lg">
+                                <Camera size={14} />
+                                <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                            </label>
+                        </div>
+
+                        {/* Inputs */}
+                        <div className="w-full space-y-3">
+                            {authMode === 'REGISTER' ? (
+                                <>
+                                    {/* Register Layout: Name (Row 1), PINs (Row 2 Col 2) */}
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-skin-muted ml-1">
+                                            Nome
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12).toUpperCase())}
+                                            placeholder="NOME"
+                                            className="input input-bordered w-full bg-skin-base border-skin-border text-skin-text font-bold text-center uppercase tracking-widest focus:ring-skin-primary px-0"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3 animate-fade-in">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-skin-muted ml-1">PIN</label>
+                                            <input
+                                                type="password"
+                                                inputMode="numeric"
+                                                value={pin}
+                                                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                                placeholder="****"
+                                                className="input input-bordered w-full bg-skin-base border-skin-border text-skin-text font-mono text-center text-xl tracking-[0.5em] focus:ring-skin-primary px-0"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-skin-muted ml-1">Confirmar</label>
+                                            <input
+                                                type="password"
+                                                inputMode="numeric"
+                                                value={confirmPin}
+                                                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                                placeholder="****"
+                                                className="input input-bordered w-full bg-skin-base border-skin-border text-skin-text font-mono text-center text-xl tracking-[0.5em] focus:ring-skin-primary px-0"
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                /* Login Layout: Grid 2 Cols (Name | PIN) */
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-skin-muted ml-1">
+                                            Nome
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12).toUpperCase())}
+                                            placeholder="NOME"
+                                            className="input input-bordered w-full bg-skin-base border-skin-border text-skin-text font-bold text-center uppercase tracking-widest focus:ring-skin-primary px-0"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-1 animate-fade-in">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-skin-muted ml-1">PIN</label>
+                                        <input
+                                            type="password"
+                                            inputMode="numeric"
+                                            value={pin}
+                                            onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                            placeholder="****"
+                                            className="input input-bordered w-full bg-skin-base border-skin-border text-skin-text font-mono text-center text-xl tracking-[0.5em] focus:ring-skin-primary px-0"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {error && (
+                            <div className="text-xs text-red-500 font-bold bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/20 w-full text-center">
+                                {error}
+                            </div>
+                        )}
+
+                        <div className="w-full space-y-3">
+                            {authMode === 'LOGIN' ? (
+                                <>
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="btn btn-primary w-full shadow-lg shadow-skin-primary/20 font-bold h-12 text-lg"
+                                    >
+                                        {isLoading ? 'A Processar...' : 'IDENTIFICAR'}
+                                    </button>
+
+                                    <div className="relative flex py-1 items-center">
+                                        <div className="flex-grow border-t border-skin-border"></div>
+                                        <span className="flex-shrink mx-2 text-[10px] text-skin-muted uppercase tracking-widest">OU</span>
+                                        <div className="flex-grow border-t border-skin-border"></div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleGuestEntry}
+                                        disabled={isLoading}
+                                        className="btn btn-ghost border-2 border-skin-border w-full font-bold text-xs tracking-widest hover:border-skin-primary hover:bg-skin-primary/5"
+                                    >
+                                        ENTRAR COMO CONVIDADO
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="btn btn-primary w-full shadow-lg shadow-skin-primary/20 font-bold h-12 text-lg"
+                                >
+                                    {isLoading ? 'A Processar...' : 'CRIAR IDENTIDADE'}
+                                </button>
+                            )}
                         </div>
                     </form>
                 </motion.div>
@@ -193,3 +299,4 @@ export default function HomeView() {
         </Layout>
     );
 }
+

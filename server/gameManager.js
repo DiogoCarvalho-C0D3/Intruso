@@ -49,34 +49,95 @@ export class GameManager {
         this.connectedUsers[socketId] = user;
     }
 
-    // New: Sync User with Persistence
-    // Called when user connects/logs in. Returns the Full User Object + Stats from DB
-    async syncUser(socketId, clientUser) {
-        // 1. Try to find user in DB by ID
-        let dbRecord = await this.db.getUser(clientUser.id);
+    // Auth: Handle Register, Login, Guest
+    // Returns { user, stats, error }
+    async authenticateUser(action, payload) {
+        try {
+            const { id, name, pin, avatarSeed, avatarType, avatarImage } = payload;
 
-        // 2. If not found by ID (maybe new ID generated on client?),
-        // fallback to strict Name#Tag search because client might have regenerated ID
-        // after cache clear but remembers the Tag.
-        if (!dbRecord && clientUser.discriminator) {
-            dbRecord = await this.db.searchUser(clientUser.name, clientUser.discriminator);
-        }
+            // 1. GUEST MODE
+            if (action === 'GUEST') {
+                const guestId = id || uuidv4(); // Use client ID or generate
+                let guestName = `C_${name.replace(/^C_/, '')}`; // ensure prefix
 
-        if (dbRecord) {
-            // User exists!
-            // Update last seen
-            await this.db.saveUser({ ...dbRecord.profile, ...clientUser }, dbRecord.stats); // Merge client profile updates (like avatar)
+                // Ensure uniqueness for guests (simple append)
+                // If it exists, and it's NOT the same ID, append random
+                // Actually, Storage.registerUser checks ID too? storage.js usually checks ID primary key.
+                // But registerUser checks name uniqueness?
+                // Safe fix: If name exists, try appending a number loop or random chars.
 
-            // Return Safe Data
-            return {
-                user: { ...dbRecord.profile, ...clientUser, id: dbRecord.profile.id }, // Trust DB ID or Profile ID? Trust Profile ID from DB.
-                stats: dbRecord.stats
-            };
-        } else {
-            // New User
-            // Save initial record
-            await this.db.saveUser(clientUser, null);
-            return { user: clientUser, stats: null };
+                let existing = await this.db.findByName(guestName);
+                if (existing && existing.id !== guestId) {
+                    // Name taken by someone else
+                    guestName = `${guestName}_${Math.floor(Math.random() * 1000)}`;
+                }
+
+                const user = {
+                    id: guestId,
+                    name: guestName,
+                    isGuest: true,
+                    avatarSeed, avatarType, avatarImage,
+                    customDecks: []
+                };
+
+                // If user exists by ID, we might need to update/save instead of register?
+                // registerUser usually throws if ID exists too. 
+                // Let's try to get by ID first.
+                const existingById = await this.db.getUser(guestId);
+                if (existingById) {
+                    // Update existing guest
+                    // Ideally we just log them in?
+                    // But we want to update their avatar/name?
+                    // Let's just update profil
+                    const updatedGuest = { ...existingById.profile, ...user };
+                    // Keep stats
+                    await this.db.saveUser(updatedGuest, existingById.stats);
+                    return { user: updatedGuest, stats: existingById.stats };
+                } else {
+                    await this.db.registerUser(user);
+                    return { user, stats: {} };
+                }
+            }
+
+            // 2. REGISTER
+            if (action === 'REGISTER') {
+                // Check existence
+                const existing = await this.db.findByName(name);
+                if (existing) return { error: 'Nome já existe!' };
+
+                const newUser = {
+                    id: id || uuidv4(),
+                    name,
+                    pin, // In a real app, hash this!
+                    isGuest: false,
+                    avatarSeed, avatarType, avatarImage
+                };
+                await this.db.registerUser(newUser);
+                return { user: newUser, stats: {} };
+            }
+
+            // 3. LOGIN
+            if (action === 'LOGIN') {
+                const existing = await this.db.findByName(name);
+                if (!existing) return { error: 'Utilizador não encontrado.' };
+
+                // normalize:
+                const profile = existing.profile || existing;
+                const stats = existing.stats || {};
+
+                if (profile.pin !== pin) return { error: 'PIN incorreto.' };
+
+                // LOGIN should NOT overwrite the avatar with the random one from the login screen.
+                // We just return the persisted profile.
+
+                return { user: profile, stats: stats };
+            }
+
+            return { error: 'Ação inválida.' };
+
+        } catch (err) {
+            console.error('[AUTH ERROR]', err);
+            return { error: err.message || 'Erro interno no servidor.' };
         }
     }
 
@@ -85,6 +146,37 @@ export class GameManager {
         if (record) {
             await this.db.saveUser(record.profile, stats);
         }
+    }
+
+    async updateUserProfile(userId, updates) {
+        const record = await this.db.getUser(userId);
+        if (record) {
+            // Merge updates into existing profile
+            const newProfile = { ...record.profile, ...updates };
+            await this.db.saveUser(newProfile, record.stats);
+
+            // 1. Update cache if user is online (connectedUsers)
+            Object.keys(this.connectedUsers).forEach(socketId => {
+                if (this.connectedUsers[socketId].id === userId) {
+                    this.connectedUsers[socketId] = { ...this.connectedUsers[socketId], ...updates };
+                }
+            });
+
+            // 2. Update user if they are in any active room (room.players)
+            Object.values(rooms).forEach(room => {
+                const playerIndex = room.players.findIndex(p => p.id === userId);
+                if (playerIndex !== -1) {
+                    // Update player object in room
+                    room.players[playerIndex] = { ...room.players[playerIndex], ...updates };
+
+                    // Notify room of the update
+                    this.io.to(room.id).emit('room_update', room);
+                }
+            });
+
+            return newProfile;
+        }
+        return null;
     }
 
     async getLeaderboard(userId) {
@@ -116,11 +208,22 @@ export class GameManager {
     restoreSession(socketId, userId) {
         // 1. Check if they are in a room
         const room = this.findUserRoom(userId);
-
-        // 2. If they are in connectedUsers (maybe different tab or quick reconnect), update socket
-        // But connectedUsers is keyed by socketId. So we'd have to scan values.
-        // It's easier to just "Login" them again as active.
         return room;
+    }
+
+    async restoreUser(userId, socketId) {
+        // Fetch user from DB to add to online list if they are just in lobby
+        const record = await this.db.getUser(userId);
+        if (record) {
+            // Normalize profile (handle Json vs Mongo structure difference)
+            // Json: record.profile. Mongo: record IS the profile (mostly)
+            const profile = record.profile || record;
+            if (profile) {
+                this.loginUser(socketId, profile);
+                return profile;
+            }
+        }
+        return null;
     }
 
     createRoom(user, socketId) {

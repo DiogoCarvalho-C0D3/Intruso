@@ -14,6 +14,7 @@ const __dirname = path.dirname(__filename);
 // async searchUser(name, discriminator)
 
 // --- Strategy 1: MongoDB ---
+// --- Strategy 1: MongoDB ---
 class MongoStorage {
     async init() {
         if (!process.env.MONGO_URI) return false;
@@ -33,27 +34,26 @@ class MongoStorage {
         return { profile: doc.toObject(), stats: doc.stats, id: doc.id };
     }
 
-    async searchUser(name, discriminator) {
-        const cleanName = name.trim(); // Case sensitive stored, but maybe query regex?
-        // Let's stick to exact match for reliability or case-insensitive via collation if needed.
-        // For simplicity, we use exact match on stored fields.
-        const doc = await User.findOne({
-            name: { $regex: new RegExp(`^${cleanName}$`, 'i') },
-            discriminator
-        });
-        if (!doc) return null;
-        return { profile: doc.toObject(), stats: doc.stats, id: doc.id };
+    // New Auth Methods
+    async findByName(name) {
+        return await User.findOne({ name });
+    }
+
+    async registerUser(profile) {
+        const user = new User(profile);
+        await user.save();
+        return user.toObject();
     }
 
     async saveUser(userProfile, stats) {
-        // Upsert based on ID
+        // Only saving existing users
         const update = { ...userProfile, lastLogin: Date.now() };
         if (stats) update.stats = stats;
 
         await User.findOneAndUpdate(
             { id: userProfile.id },
             update,
-            { upsert: true, new: true }
+            { new: true }
         );
     }
 
@@ -66,20 +66,17 @@ class MongoStorage {
 
         const result = {};
 
-        // Helper to get Top 5 and User Rank
         const getCategoryData = async (fieldKey) => {
-            // Top 5
-            const top5Docs = await User.find({})
+            // Exclude guests
+            const top5Docs = await User.find({ isGuest: false })
                 .sort({ [fieldKey]: -1 })
                 .limit(5)
-                .select('name discriminator avatarSeed avatarType avatarImage ' + fieldKey);
+                .select('name avatarSeed avatarType avatarImage ' + fieldKey);
 
             const top5 = top5Docs.map(doc => {
-                // Resolve nested value safely
                 const value = fieldKey.split('.').reduce((o, i) => o?.[i] || 0, doc);
                 return {
                     name: doc.name,
-                    discriminator: doc.discriminator,
                     avatarSeed: doc.avatarSeed,
                     avatarType: doc.avatarType,
                     avatarImage: doc.avatarImage,
@@ -87,19 +84,16 @@ class MongoStorage {
                 };
             });
 
-            // User Rank
             let userRankData = null;
             if (userId) {
                 const userDoc = await User.findOne({ id: userId });
-                if (userDoc) {
+                if (userDoc && !userDoc.isGuest) {
                     const userValue = fieldKey.split('.').reduce((o, i) => o?.[i] || 0, userDoc) || 0;
-                    // Rank = count of people with STRICTLY greater value + 1
-                    const rank = await User.countDocuments({ [fieldKey]: { $gt: userValue } }) + 1;
+                    const rank = await User.countDocuments({ isGuest: false, [fieldKey]: { $gt: userValue } }) + 1;
                     userRankData = {
                         rank,
                         value: userValue,
-                        name: userDoc.name, // useful for display
-                        discriminator: userDoc.discriminator
+                        name: userDoc.name
                     };
                 }
             }
@@ -153,16 +147,27 @@ class JsonStorage {
         return this.data.users[userId] || null;
     }
 
-    async searchUser(name, discriminator) {
-        const cleanName = name.trim().toLowerCase();
-        return Object.values(this.data.users).find(u =>
-            u.profile.name.toLowerCase() === cleanName &&
-            u.profile.discriminator === discriminator
-        ) || null;
+    async findByName(name) {
+        return Object.values(this.data.users).find(u => u.profile.name === name);
+    }
+
+    async registerUser(profile) {
+        // Assume check happened before, but double check
+        if (await this.findByName(profile.name)) throw new Error('Name exists');
+
+        this.data.users[profile.id] = {
+            profile,
+            stats: {},
+            lastLogin: Date.now()
+        };
+        this.saveDebounced();
+        return this.data.users[profile.id];
     }
 
     async saveUser(userProfile, stats) {
-        const existing = this.data.users[userProfile.id] || {};
+        const existing = this.data.users[userProfile.id];
+        if (!existing) return; // Should exist
+
         this.data.users[userProfile.id] = {
             ...existing,
             profile: { ...existing.profile, ...userProfile },
@@ -173,12 +178,11 @@ class JsonStorage {
     }
 
     async getLeaderboard(userId) {
-        const allUsers = Object.values(this.data.users);
+        const allUsers = Object.values(this.data.users).filter(u => !u.profile.isGuest);
         const categories = {
             totalGames: u => u.stats?.totalGames || 0,
             impostorWins: u => u.stats?.wins?.impostor || 0,
             citizenWins: u => u.stats?.wins?.citizen || 0,
-            // New Skill Categories (Min 3 games to qualify)
             impostorRate: u => {
                 const played = u.stats?.roles?.impostor || 0;
                 if (played < 3) return -1;
@@ -194,20 +198,16 @@ class JsonStorage {
         const result = {};
 
         for (const [key, getValue] of Object.entries(categories)) {
-            // Sort Descending
             const sorted = allUsers.sort((a, b) => getValue(b) - getValue(a));
 
-            // Top 5
             const top5 = sorted.slice(0, 5).map(u => ({
                 name: u.profile.name,
-                discriminator: u.profile.discriminator,
                 avatarSeed: u.profile.avatarSeed,
                 avatarType: u.profile.avatarType,
                 avatarImage: u.profile.avatarImage,
-                value: getValue(u) // Ensure number
+                value: getValue(u)
             }));
 
-            // User Rank
             let userRankData = null;
             if (userId) {
                 const userIndex = sorted.findIndex(u => u.profile.id === userId);
@@ -215,8 +215,7 @@ class JsonStorage {
                     userRankData = {
                         rank: userIndex + 1,
                         value: getValue(sorted[userIndex]),
-                        name: sorted[userIndex].profile.name,
-                        discriminator: sorted[userIndex].profile.discriminator
+                        name: sorted[userIndex].profile.name
                     };
                 }
             }
@@ -234,7 +233,6 @@ export class StorageManager {
     }
 
     async init() {
-        // Try Mongo First
         if (process.env.MONGO_URI) {
             const mongo = new MongoStorage();
             if (await mongo.init()) {
@@ -242,15 +240,14 @@ export class StorageManager {
                 return;
             }
         }
-
-        // Fallback to JSON
         console.log('[Storage] Falling back to Local JSON Storage.');
         this.activeStorage = new JsonStorage();
         await this.activeStorage.init();
     }
 
-    async getUser(userId) { return this.activeStorage.getUser(userId); }
-    async searchUser(name, disc) { return this.activeStorage.searchUser(name, disc); }
+    async getUser(id) { return this.activeStorage.getUser(id); }
+    async findByName(name) { return this.activeStorage.findByName(name); }
+    async registerUser(profile) { return this.activeStorage.registerUser(profile); }
     async saveUser(profile, stats) { return this.activeStorage.saveUser(profile, stats); }
     async getLeaderboard(userId) { return this.activeStorage.getLeaderboard(userId); }
 }

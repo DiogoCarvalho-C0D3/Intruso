@@ -14,7 +14,6 @@ const app = express();
 app.use(cors());
 
 // Serve static files from the React build "dist" directory
-// The "dist" folder is at the project root, one level up from "server"
 app.use(express.static(path.join(__dirname, '../dist')));
 
 const server = http.createServer(app);
@@ -30,7 +29,7 @@ const gameManager = new GameManager(io);
 // Init DB then Start Server
 await gameManager.init();
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
     console.log('User connected:', socket.id);
     const userId = socket.handshake.auth?.userId;
 
@@ -47,33 +46,47 @@ io.on('connection', (socket) => {
                 socket.emit('session_restored', { room, user: player });
             }
         }
+
+        // Always try to restore user profile if we have userId
+        const restoredUser = await gameManager.restoreUser(userId, socket.id);
+        if (restoredUser && !socket.handshake.query.reconnect) {
+            socket.emit('user_restored', restoredUser);
+        }
     }
+
 
     // Send initial data
     socket.emit('rooms_list', gameManager.getPublicRooms());
     io.emit('online_users', gameManager.getOnlineUsers());
 
-    socket.on('user_login', async ({ user }) => {
-        // Sync with DB
-        const { user: syncedUser, stats } = await gameManager.syncUser(socket.id, user);
+    socket.on('user_auth', async ({ action, payload }) => {
+        const { user, stats, error } = await gameManager.authenticateUser(action, payload);
 
-        // Update connected list with the potentially corrected ID (if we recovered by Tag)
-        gameManager.loginUser(socket.id, syncedUser);
-
-        // Send back authoritative Stats
-        if (stats) {
-            socket.emit('stats_update', stats);
+        if (error) {
+            socket.emit('auth_error', error);
+            return;
         }
 
-        // Also maybe tell the client "Your ID is actually X" if it changed?
-        // Ideally client respects the sync.
+        // Success
+        gameManager.loginUser(socket.id, user); // Track socket
 
+        // Send back
+        socket.emit('auth_success', { user, stats });
         io.emit('online_users', gameManager.getOnlineUsers());
     });
 
     socket.on('save_stats', async ({ userId, stats }) => {
         // Client pushing new stats to be persisted
         await gameManager.saveUserStats(userId, stats);
+    });
+
+    socket.on('update_profile', async ({ userId, updates }) => {
+        const updatedUser = await gameManager.updateUserProfile(userId, updates);
+        if (updatedUser) {
+            socket.emit('profile_updated', updatedUser);
+            // Broadcast change to others (e.g. for Avatar updates in lobby)
+            io.emit('online_users', gameManager.getOnlineUsers());
+        }
     });
 
     socket.on('request_leaderboard', async ({ userId }) => {
@@ -179,6 +192,11 @@ io.on('connection', (socket) => {
         console.log('User disconnected:', socket.id);
         gameManager.disconnect(socket.id);
         io.emit('online_users', gameManager.getOnlineUsers());
+    });
+
+    // Social Interactions
+    socket.on('send_reaction', ({ roomId, emoji }) => {
+        io.to(roomId).emit('reaction_received', { emoji, socketId: socket.id });
     });
 });
 

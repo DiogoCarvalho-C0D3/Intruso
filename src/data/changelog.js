@@ -1,6 +1,20 @@
-export const APP_VERSION = '1.3.2';
+export const APP_VERSION = '1.4.0';
 
 export const CHANGELOG = [
+    {
+        version: '1.4.0',
+        date: '2025-12-13',
+        title: 'Segurança & Oficina',
+        features: [
+            '🛡️ Autenticação 2.0: Contas protegidas por PIN e Nomes Únicos.',
+            '👁️ Modo Convidado: Joga sem registo (sem histórico).',
+            '📚 Expansão Massiva: 5x mais palavras em todas as categorias (Geral, Cinema, etc.)!',
+            '✏️ Oficina de Baralhos: Cria e joga com as tuas próprias categorias de palavras.',
+            '💾 Avatar Persistente: A tua selfie agora é guardada e sincronizada instantaneamente.',
+            '💬 Reações: Envia emojis flutuantes durante o jogo!',
+            '🔊 Sound Design: Efeitos sonoros imersivos na interface (com opção de Mute).'
+        ]
+    },
     {
         version: '1.3.2',
         date: '2025-12-13',

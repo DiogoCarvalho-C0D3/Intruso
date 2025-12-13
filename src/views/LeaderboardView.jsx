@@ -288,7 +288,7 @@ export default function LeaderboardView() {
                                                     {player.name}
                                                     {isFirst && <Crown size={16} className="text-yellow-400 fill-yellow-400" />}
                                                 </div>
-                                                <div className="text-xs text-skin-muted font-mono">#{player.discriminator}</div>
+
                                             </div>
 
                                             <div className="text-xl font-bold text-skin-primary">

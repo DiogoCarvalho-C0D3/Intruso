@@ -4,6 +4,10 @@ import { motion } from 'framer-motion';
 import Snowfall from '../ui/Snowfall';
 import ChristmasDecorations from '../ui/ChristmasDecorations';
 import { APP_VERSION } from '../../data/changelog';
+import { Volume2, VolumeX } from 'lucide-react';
+import { useSound } from '../../context/SoundContext';
+import ReactionOverlay from '../game/ReactionOverlay';
+import ReactionBar from '../game/ReactionBar';
 
 export default function Layout({
     header,
@@ -21,6 +25,9 @@ export default function Layout({
 
             {/* Content Container */}
             <div className="flex-1 flex flex-col w-full max-w-lg mx-auto bg-skin-base h-full relative shadow-2xl z-10 w-full">
+
+                <ReactionOverlay />
+                <ReactionBar />
 
                 {/* Header */}
                 {header && (
@@ -47,6 +54,9 @@ export default function Layout({
                     </footer>
                 )}
 
+                {/* Sound Toggle */}
+                <SoundToggle />
+
                 {/* Version Watermark */}
                 <Link
                     to="/changelog"
@@ -56,5 +66,19 @@ export default function Layout({
                 </Link>
             </div>
         </div>
+    );
+}
+
+function SoundToggle() {
+    const { isMuted, toggleMute, playClick } = useSound();
+    const Icon = isMuted ? VolumeX : Volume2;
+
+    return (
+        <button
+            onClick={() => { toggleMute(); playClick(); }}
+            className="absolute bottom-1 left-2 z-50 opacity-30 hover:opacity-100 transition-opacity p-1 text-skin-muted hover:text-skin-primary"
+        >
+            <Icon size={14} />
+        </button>
     );
 }

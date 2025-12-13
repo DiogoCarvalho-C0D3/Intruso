@@ -152,7 +152,8 @@ export default function RoomView() {
     const handleStart = () => {
         const categories = currentRoom.settings.categories || ['Geral'];
         const difficulty = currentRoom.settings.difficulty || 'medium';
-        const { word: secretWord, category: selectedCategory } = getRandomWord(categories, difficulty);
+        // Pass Host's custom decks
+        const { word: secretWord, category: selectedCategory } = getRandomWord(categories, difficulty, currentUser?.customDecks);
         const playerCount = currentRoom.players.length;
         let impostorCount = currentRoom.settings.impostorCount;
         const maxImpostors = Math.floor(playerCount / 2) || 1;
@@ -404,29 +405,60 @@ export default function RoomView() {
                     </div>
 
                     <div className="space-y-3 pt-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-skin-muted px-1">Categorias</label>
+                        <label className="text-xs font-bold uppercase tracking-widest text-skin-muted px-1 flex justify-between items-center">
+                            <span>Categorias</span>
+                            {isHost && (currentUser?.customDecks?.length > 0) && <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 rounded">Teus Baralhos</span>}
+                        </label>
                         {isHost ? (
-                            <div className="grid grid-cols-3 gap-2">
-                                {Object.keys(CATEGORIES).map(c => {
-                                    const isSelected = (currentRoom.settings.categories || ['Geral']).includes(c);
-                                    return (
-                                        <button
-                                            key={c}
-                                            onClick={() => toggleCategory(c)}
-                                            className={`flex flex-row items-center justify-start gap-2 px-3 py-2 rounded-xl border transition-all active:scale-95 ${isSelected ? 'bg-skin-primary/10 border-skin-primary/50' : 'bg-skin-card border-skin-border hover:bg-skin-base'}`}
-                                        >
-                                            <span className="text-lg leading-none">{CATEGORY_ICONS[c] || '📦'}</span>
-                                            <span className={`text-[10px] uppercase font-bold tracking-wide truncate flex-1 text-left ${isSelected ? 'text-skin-primary' : 'text-skin-muted'}`}>{c}</span>
-                                            {isSelected && <div className="w-1.5 h-1.5 bg-skin-primary rounded-full" />}
-                                        </button>
-                                    )
-                                })}
+                            <div className="space-y-3">
+                                {/* Standard Categories */}
+                                <div className="grid grid-cols-3 gap-2">
+                                    {Object.keys(CATEGORIES).map(c => {
+                                        const isSelected = (currentRoom.settings.categories || ['Geral']).includes(c);
+                                        return (
+                                            <button
+                                                key={c}
+                                                onClick={() => toggleCategory(c)}
+                                                className={`flex flex-row items-center justify-start gap-2 px-3 py-2 rounded-xl border transition-all active:scale-95 ${isSelected ? 'bg-skin-primary/10 border-skin-primary/50' : 'bg-skin-card border-skin-border hover:bg-skin-base'}`}
+                                            >
+                                                <span className="text-lg leading-none">{CATEGORY_ICONS[c] || '📦'}</span>
+                                                <span className={`text-[10px] uppercase font-bold tracking-wide truncate flex-1 text-left ${isSelected ? 'text-skin-primary' : 'text-skin-muted'}`}>{c}</span>
+                                                {isSelected && <div className="w-1.5 h-1.5 bg-skin-primary rounded-full" />}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+
+                                {/* Custom Decks Section */}
+                                {currentUser?.customDecks?.length > 0 && (
+                                    <div className="pt-2 border-t border-skin-border">
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            {currentUser.customDecks.map(deck => {
+                                                const isSelected = (currentRoom.settings.categories || []).includes(deck.name);
+                                                return (
+                                                    <button
+                                                        key={deck.id}
+                                                        onClick={() => toggleCategory(deck.name)}
+                                                        className={`flex flex-row items-center justify-start gap-2 px-3 py-2 rounded-xl border transition-all active:scale-95 ${isSelected ? 'bg-cyan-500/10 border-cyan-500/50' : 'bg-skin-card border-skin-border hover:bg-skin-base'}`}
+                                                    >
+                                                        <span className="text-lg leading-none">🃏</span>
+                                                        <div className="flex flex-col flex-1 text-left min-w-0">
+                                                            <span className={`text-[10px] uppercase font-bold tracking-wide truncate ${isSelected ? 'text-cyan-400' : 'text-skin-muted'}`}>{deck.name}</span>
+                                                            <span className="text-[8px] text-skin-muted opacity-50">{deck.words.length} palavras</span>
+                                                        </div>
+                                                        {isSelected && <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full" />}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="flex flex-wrap gap-2">
                                 {(currentRoom.settings.categories || ['Geral']).map(c => (
                                     <div key={c} className="flex items-center gap-2 px-3 py-1.5 bg-skin-card rounded-lg border border-skin-border">
-                                        <span className="text-lg leading-none">{CATEGORY_ICONS[c] || '📦'}</span>
+                                        <span className="text-lg leading-none">{CATEGORY_ICONS[c] || '🃏'}</span>
                                         <span className="text-xs font-bold text-skin-muted">{c}</span>
                                     </div>
                                 ))}
