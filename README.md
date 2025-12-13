@@ -1,59 +1,62 @@
 # Intruso 🕵️‍♂️
 
-**Intruso** é um jogo de dedução social multijogador local, inspirado em clássicos como *Spyfall* e *Undercover*. Um jogador é o **Intruso** e não sabe a palavra secreta; os outros sabem a palavra e devem descrevê-la sem revelar demasiado. O objetivo do Intruso é passar despercebido, enquanto os outros tentam descobri-lo.
+**Intruso** é um jogo de dedução social multijogador em tempo real, inspirado em clássicos como *Spyfall* e *Undercover*.
+Um jogador é o **Intruso** e não sabe a palavra secreta; os outros (Civis) sabem a palavra. O objetivo é descobrir quem mente!
+
+## ✨ Novidades da Versão 2.0
+
+*   **🆔 Identidade Persistente**: Cria o teu Agente único (`Nome#Tag`). O jogo "lembra-se" de ti e das tuas estatísticas, mesmo que mudes de dispositivo.
+*   **💾 Cloud Save**: Histórico e conquistas guardados na nuvem (via MongoDB) ou localmente.
+*   **🏆 Sistema de Recompensas**: Completa missões para desbloquear molduras exclusivas para o teu Avatar (ex: "Glória Dourada").
+*   **❄️ Temas Dinâmicos**: Inclui modo de Natal e outros temas visuais.
 
 ## 🚀 Tecnologias
 
-Este projeto foi desenvolvido com tecnologias web modernas para garantir uma experiência rápida, reativa e visualmente apelativa (PWA).
-
-- **Frontend**: React, Tailwind CSS, Framer Motion (animações), Lucide React (ícones).
-- **Backend (Servidor)**: Node.js, Socket.io (comunicação em tempo real).
-- **Ferramentas**: Vite, PostCSS.
-
-## ✨ Funcionalidades
-
-- **Multiplayer em Tempo Real**: Joga instantaneamente com amigos na mesma rede Wi-Fi.
-- **Temas Imersivos**: Escolhe entre vários temas visuais, incluindo o novo modo **Natal** com neve a cair! 🎄❄️
-- **PWA Instalável**: Instala o jogo como uma APP nativa no teu telemóvel (Android/iOS) para uma experiência de ecrã inteiro.
-- **Votação Inteligente**: Sistema de votação com rondas de desempate (Runoff).
-- **Sem Anúncios**: 100% gratuito e focado na diversão.
+*   **Frontend**: React, Tailwind CSS, Framer Motion.
+*   **Backend**: Node.js, Socket.io.
+*   **Base de Dados**: MongoDB (Atlas) ou JSON Local.
+*   **Build**: Vite (PWA Support).
 
 ## 📱 Como Jogar
 
-1. **Criar Sala**: Um jogador ("Anfitrião") cria uma sala e escolhe as definições (Tema, Rondas, Dificuldade).
-2. **Entrar na Sala**: Os outros jogadores entram na sala usando o código de 6 dígitos gerado.
-3. **Descobrir a Função**: No início, cada jogador recebe a sua função:
-    - **Civis**: Vêem a palavra secreta (ex: "Pizza").
-    - **Intruso**: Vê apenas "TU ÉS O INTRUSO".
-4. **Descrever**: À vez, cada jogador dá uma dica de uma só palavra relacionada com a palavra secreta.
-5. **Votação**: Após as rondas, todos votam em quem acham que é o Intruso.
-    - Se o Intruso for o mais votado, os Civis ganham!
-    - Se o Intruso não for descoberto, ele ganha!
+1.  **Entrar**: Define o teu nome. Podes adicionar um código `#0000` para recuperar uma conta antiga.
+2.  **Lobby**: Cria uma sala ou junta-te a uma existente.
+3.  **O Jogo**:
+    *   **Civis**: Recebem uma palavra (ex: "Pizza"). Têm de dar dicas subtis.
+    *   **Intruso**: Recebe apenas "INTUSO". Tem de fingir que sabe a palavra.
+4.  **Votação**: Descubram o impostor antes que o tempo acabe!
 
 ## 🛠️ Instalação Local
 
-Para correr o jogo no teu computador:
+1.  **Instalar Dependências**
+    ```bash
+    npm install
+    ```
 
-1. **Clonar o repositórios**
-   ```bash
-   git clone https://github.com/teu-utilizador/intruso.git
-   cd intruso
-   ```
+2.  **Iniciar (Dev Mode)**
+    ```bash
+    npm run game
+    ```
+    Isto inicia o Servidor e o Cliente Simultaneamente.
+    *   Acede a `http://localhost:5173`.
+    *   Por defeito, usa uma base de dados local (`server/db.json`).
 
-2. **Instalar Dependências**
-   ```bash
-   npm install
-   ```
+## ☁️ Deploy (Render.com)
 
-3. **Iniciar Servidor e Cliente**
-   ```bash
-   npm run game
-   ```
-   Isto irá iniciar o servidor na porta `3001` e o cliente Vite na `5173`.
+O projeto está configurado para correr no Render.com.
 
-4. **Jogar na Rede Local**
-   O comando acima expõe o jogo na tua rede Wi-Fi local. Procura no terminal pelo endereço "Network" (ex: `http://192.168.1.5:5173`) e abre esse link nos smartphones dos teus amigos!
+### Persistência de Dados
+Para garantir que os dados não são apagados quando o servidor reinicia, tens duas opções:
+
+1.  **MongoDB Atlas (Recomendado/Grátis)**:
+    *   Cria um cluster gratuito no MongoDB Atlas.
+    *   No painel do Render, adiciona uma Environment Variable:
+        *   `MONGO_URI`: `mongodb+srv://<user>:<password>@cluster...`
+    *   O jogo deteta a variável e muda automaticamente para o modo MongoDB.
+
+2.  **JSON Local (Efemeridade)**:
+    *   Se não configurares nada, o jogo usa um ficheiro temporário. Os dados perdem-se se o servidor reiniciar.
+    *   Para persistir ficheiros no Render (sem Mongo), precisarias de um "Persistent Disk" (Pago).
 
 ## 📄 Licença
-
-Este projeto é de código aberto e está disponível sob a licença [MIT](LICENSE).
+[MIT](LICENSE)
