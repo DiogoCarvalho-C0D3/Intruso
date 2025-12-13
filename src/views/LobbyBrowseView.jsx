@@ -7,7 +7,7 @@ import StatsModal from '../components/ui/StatsModal';
 import MissionsModal from '../components/ui/MissionsModal';
 import SettingsModal from '../components/ui/SettingsModal';
 import Layout from '../components/layout/Layout';
-import { Plus, Search, LogOut, WifiOff, Users, ArrowRight, BarChart2, Settings, Gift } from 'lucide-react';
+import { Plus, Search, LogOut, WifiOff, Users, ArrowRight, BarChart2, Settings, Gift, Trophy } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { REWARDS_MAP } from '../data/missions';
 
@@ -78,6 +78,13 @@ export default function LobbyBrowseView() {
                     title="Meu Currículo"
                 >
                     <BarChart2 size={18} />
+                </button>
+                <button
+                    onClick={() => navigate('/leaderboard')}
+                    className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+                    title="Classificação"
+                >
+                    <Trophy size={18} />
                 </button>
                 <button
                     onClick={() => { logout(); navigate('/'); }}

@@ -76,6 +76,11 @@ io.on('connection', (socket) => {
         await gameManager.saveUserStats(userId, stats);
     });
 
+    socket.on('request_leaderboard', async ({ userId }) => {
+        const data = await gameManager.getLeaderboard(userId);
+        socket.emit('leaderboard_data', data);
+    });
+
     socket.on('create_room', ({ user }) => {
         try {
             const room = gameManager.createRoom(user, socket.id);

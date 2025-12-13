@@ -5,6 +5,7 @@ import HomeView from './views/HomeView';
 import LobbyBrowseView from './views/LobbyBrowseView';
 import RoomView from './views/RoomView';
 import GameView from './views/GameView';
+import LeaderboardView from './views/LeaderboardView';
 
 import InstallPrompt from './components/pwa/InstallPrompt';
 
@@ -16,6 +17,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomeView />} />
           <Route path="/lobby" element={<LobbyBrowseView />} />
+          <Route path="/leaderboard" element={<LeaderboardView />} />
           <Route path="/room/:roomId" element={<RoomView />} />
           <Route path="/game/:roomId" element={<GameView />} />
           <Route path="*" element={<Navigate to="/" replace />} />

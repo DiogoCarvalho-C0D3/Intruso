@@ -1,44 +1,43 @@
 import { useMemo } from 'react';
 import { REWARDS_MAP } from '../../data/missions';
 
-export default function Avatar({ name, seed: dataSeed, size = 'md', className = '', style = {}, accessory = null }) {
+export default function Avatar({ name, seed, image, size = 'md', className = '', accessory = null, onClick }) {
 
-    // Define size in pixels for the container to ensure image fits
-    const getPixelSize = () => {
-        if (size === 'xl') return 120;
-        if (size === 'lg') return 80;
-        if (size === 'sm') return 32;
-        if (size === 'xs') return 24;
-        return 48; // md
+    // Define size classes for TailwindCSS
+    const sizeClasses = {
+        xl: 'w-[120px] h-[120px] min-w-[120px]',
+        lg: 'w-[80px] h-[80px] min-w-[80px]',
+        md: 'w-[48px] h-[48px] min-w-[48px]',
+        sm: 'w-[32px] h-[32px] min-w-[32px]',
+        xs: 'w-[24px] h-[24px] min-w-[24px]',
     };
 
-    // Use 'fun-emoji' for funny, 'adventurer' for characters. 
-    // 'fun-emoji' is very performant and looks clearly distinct.
+    // DiceBear URL
     const avatarUrl = useMemo(() => {
-        const seed = dataSeed || name || 'guest';
+        if (image) return image; // Use custom image if available
+        const seedValue = seed || name || 'default';
         // API documentation: https://www.dicebear.com/styles/fun-emoji/
-        return `https://api.dicebear.com/9.x/fun-emoji/svg?seed=${encodeURIComponent(seed)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
-    }, [name, dataSeed]);
+        return `https://api.dicebear.com/9.x/fun-emoji/svg?seed=${encodeURIComponent(seedValue)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+    }, [seed, name, image]);
+
+    const isCustom = !!image;
 
     // Resolve accessory frame
     const frameClass = accessory && REWARDS_MAP[accessory]?.frameClass ? REWARDS_MAP[accessory].frameClass : '';
 
     return (
         <div
-            className={`rounded-full flex items-center justify-center overflow-hidden bg-slate-700 ${className} ${frameClass}`}
-            style={{
-                width: style.width || getPixelSize() + 'px',
-                height: style.height || getPixelSize() + 'px',
-                minWidth: style.width || getPixelSize() + 'px', // Prevent squishing
-                border: frameClass ? undefined : (style.border || '2px solid rgba(255,255,255,0.1)'), // Only apply default border if no frame
-                ...style, // Allow overriding
-            }}
-        ><img
+            onClick={onClick}
+            className={`relative rounded-full overflow-hidden bg-white/20 backdrop-blur-sm ${sizeClasses[size] || sizeClasses.md} ${className} ${frameClass} ${onClick ? 'cursor-pointer' : ''}`}
+        >
+            <img
                 src={avatarUrl}
-                alt={name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => { e.target.style.display = 'none'; }} // Fallback if API fails (could show initials here)
+                alt={name || 'Avatar'}
+                className={`w-full h-full object-cover`}
+                onError={(e) => { e.target.style.display = 'none'; }}
             />
+
+            {/* Accessory logic (if overlay needed) could go here, but strictly we are using frameClass on container */}
         </div>
     );
 }

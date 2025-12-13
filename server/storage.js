@@ -56,6 +56,62 @@ class MongoStorage {
             { upsert: true, new: true }
         );
     }
+
+    async getLeaderboard(userId) {
+        const categories = {
+            totalGames: 'stats.totalGames',
+            impostorWins: 'stats.wins.impostor',
+            citizenWins: 'stats.wins.citizen'
+        };
+
+        const result = {};
+
+        // Helper to get Top 5 and User Rank
+        const getCategoryData = async (fieldKey) => {
+            // Top 5
+            const top5Docs = await User.find({})
+                .sort({ [fieldKey]: -1 })
+                .limit(5)
+                .select('name discriminator avatarSeed avatarType avatarImage ' + fieldKey);
+
+            const top5 = top5Docs.map(doc => {
+                // Resolve nested value safely
+                const value = fieldKey.split('.').reduce((o, i) => o?.[i] || 0, doc);
+                return {
+                    name: doc.name,
+                    discriminator: doc.discriminator,
+                    avatarSeed: doc.avatarSeed,
+                    avatarType: doc.avatarType,
+                    avatarImage: doc.avatarImage,
+                    value: value || 0
+                };
+            });
+
+            // User Rank
+            let userRankData = null;
+            if (userId) {
+                const userDoc = await User.findOne({ id: userId });
+                if (userDoc) {
+                    const userValue = fieldKey.split('.').reduce((o, i) => o?.[i] || 0, userDoc) || 0;
+                    // Rank = count of people with STRICTLY greater value + 1
+                    const rank = await User.countDocuments({ [fieldKey]: { $gt: userValue } }) + 1;
+                    userRankData = {
+                        rank,
+                        value: userValue,
+                        name: userDoc.name, // useful for display
+                        discriminator: userDoc.discriminator
+                    };
+                }
+            }
+            return { top: top5, user: userRankData };
+        };
+
+        result.totalGames = await getCategoryData(categories.totalGames);
+        result.impostorWins = await getCategoryData(categories.impostorWins);
+        result.citizenWins = await getCategoryData(categories.citizenWins);
+
+        return result;
+    }
 }
 
 // --- Strategy 2: Local JSON File (Fallback) ---
@@ -115,6 +171,49 @@ class JsonStorage {
         };
         this.saveDebounced();
     }
+
+    async getLeaderboard(userId) {
+        const allUsers = Object.values(this.data.users);
+        const categories = {
+            totalGames: u => u.stats?.totalGames || 0,
+            impostorWins: u => u.stats?.wins?.impostor || 0,
+            citizenWins: u => u.stats?.wins?.citizen || 0
+        };
+
+        const result = {};
+
+        for (const [key, getValue] of Object.entries(categories)) {
+            // Sort Descending
+            const sorted = allUsers.sort((a, b) => getValue(b) - getValue(a));
+
+            // Top 5
+            const top5 = sorted.slice(0, 5).map(u => ({
+                name: u.profile.name,
+                discriminator: u.profile.discriminator,
+                avatarSeed: u.profile.avatarSeed,
+                avatarType: u.profile.avatarType,
+                avatarImage: u.profile.avatarImage,
+                value: getValue(u) // Ensure number
+            }));
+
+            // User Rank
+            let userRankData = null;
+            if (userId) {
+                const userIndex = sorted.findIndex(u => u.profile.id === userId);
+                if (userIndex !== -1) {
+                    userRankData = {
+                        rank: userIndex + 1,
+                        value: getValue(sorted[userIndex]),
+                        name: sorted[userIndex].profile.name,
+                        discriminator: sorted[userIndex].profile.discriminator
+                    };
+                }
+            }
+            result[key] = { top: top5, user: userRankData };
+        }
+
+        return result;
+    }
 }
 
 // --- Manager ---
@@ -142,4 +241,5 @@ export class StorageManager {
     async getUser(userId) { return this.activeStorage.getUser(userId); }
     async searchUser(name, disc) { return this.activeStorage.searchUser(name, disc); }
     async saveUser(profile, stats) { return this.activeStorage.saveUser(profile, stats); }
+    async getLeaderboard(userId) { return this.activeStorage.getLeaderboard(userId); }
 }

@@ -2,30 +2,27 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { useStatistics } from '../hooks/useStatistics';
+// import { useStatistics } from '../hooks/useStatistics';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, BarChart2, Gift } from 'lucide-react';
+import { RefreshCw, Camera } from 'lucide-react';
 import Avatar from '../components/ui/Avatar';
-import StatsModal from '../components/ui/StatsModal';
-import MissionsModal from '../components/ui/MissionsModal';
 import Layout from '../components/layout/Layout';
-import { REWARDS_MAP } from '../data/missions';
+import { compressAvatar } from '../utils/image';
 
 export default function HomeView() {
     const { login, currentUser } = useGame();
-    const { stats, resetStats, equipReward } = useStatistics(null);
 
     const [name, setName] = useState('');
     const [discriminator, setDiscriminator] = useState('');
     const [avatarSeed, setAvatarSeed] = useState(Math.random().toString());
-    const [isStatsOpen, setIsStatsOpen] = useState(false);
-    const [isMissionsOpen, setIsMissionsOpen] = useState(false);
+    const [avatarImage, setAvatarImage] = useState(null);
+    const [avatarType, setAvatarType] = useState('dicebear'); // 'dicebear' | 'custom'
     const [error, setError] = useState('');
 
     const navigate = useNavigate();
 
     // Derived equipped reward (Frame ID)
-    const equippedAccessory = stats.equippedReward || null;
+    const equippedAccessory = null; // No accessories before login
 
     useEffect(() => {
         if (currentUser) {
@@ -50,13 +47,33 @@ export default function HomeView() {
             return;
         }
 
-        // Pass equippedAccessory and Discriminator
+        // Pass equippedAccessory and Discriminator and Avatar Data
         try {
-            login(trimmedName, avatarSeed, undefined, equippedAccessory, discriminator || null);
+            login(trimmedName, avatarSeed, undefined, equippedAccessory, discriminator || null, avatarImage, avatarType);
             navigate('/lobby');
         } catch (e) {
             setError(e.message);
         }
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            try {
+                const compressed = await compressAvatar(file);
+                setAvatarImage(compressed);
+                setAvatarType('custom');
+            } catch (err) {
+                console.error("Compression failed", err);
+                setError("Erro ao carregar imagem.");
+            }
+        }
+    };
+
+    const regenAvatar = () => {
+        setAvatarSeed(Math.random().toString());
+        setAvatarType('dicebear');
+        setAvatarImage(null);
     };
 
     const handleNameChange = (e) => {
@@ -66,34 +83,7 @@ export default function HomeView() {
 
     return (
         <Layout className="flex flex-col items-center justify-center min-h-full">
-            <StatsModal
-                isOpen={isStatsOpen}
-                onClose={() => setIsStatsOpen(false)}
-                stats={stats}
-                onReset={resetStats}
-            />
-
-            <MissionsModal
-                isOpen={isMissionsOpen}
-                onClose={() => setIsMissionsOpen(false)}
-                stats={stats}
-                onEquip={equipReward}
-            />
-
-            <div className="absolute top-4 right-4 flex gap-2">
-                <button
-                    onClick={() => setIsMissionsOpen(true)}
-                    className="w-10 h-10 rounded-full bg-skin-card border border-skin-border flex items-center justify-center text-pink-400 shadow-lg hover:scale-105 transition-transform"
-                >
-                    <Gift size={20} />
-                </button>
-                <button
-                    onClick={() => setIsStatsOpen(true)}
-                    className="w-10 h-10 rounded-full bg-skin-card border border-skin-border flex items-center justify-center text-skin-primary shadow-lg hover:scale-105 transition-transform"
-                >
-                    <BarChart2 size={20} />
-                </button>
-            </div>
+            {/* Removed Pre-Login Stats/Missions Buttons */}
 
             <div className="w-full max-w-sm flex flex-col items-center justify-center flex-1 py-10">
                 <motion.div
@@ -122,19 +112,31 @@ export default function HomeView() {
 
                         {/* Avatar Selection */}
                         <div className="flex flex-col items-center gap-4 mb-6 w-full">
-                            <div className="relative group cursor-pointer active:scale-95 transition-transform" onClick={() => setAvatarSeed(Math.random().toString())}>
+                            <div className="relative group">
                                 <Avatar
                                     name={name || '?'}
                                     seed={avatarSeed}
+                                    image={avatarType === 'custom' ? avatarImage : null}
                                     size="xl"
                                     className={`shadow-2xl border-4 transition-colors ${error ? 'border-red-500' : 'border-skin-border group-hover:border-skin-primary'}`}
                                     accessory={equippedAccessory}
                                 />
-                                <div className="absolute -bottom-2 -right-2 bg-skin-primary text-white p-2 rounded-full shadow-lg group-hover:rotate-180 transition-transform duration-500">
+
+                                {/* Refresh Button (Dicebear) */}
+                                <div
+                                    onClick={regenAvatar}
+                                    className="absolute -bottom-2 -right-2 bg-skin-primary text-white p-2 rounded-full shadow-lg cursor-pointer hover:rotate-180 transition-transform duration-500 z-10"
+                                >
                                     <RefreshCw size={16} />
                                 </div>
+
+                                {/* Upload Button (Custom) */}
+                                <label className="absolute -bottom-2 -left-2 bg-skin-secondary text-white p-2 rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform z-10">
+                                    <Camera size={16} />
+                                    <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                                </label>
                             </div>
-                            <span className="text-[10px] text-skin-muted uppercase tracking-widest font-bold">Toca para mudar</span>
+                            <span className="text-[10px] text-skin-muted uppercase tracking-widest font-bold">Mudar ou Carregar Foto</span>
 
                             {/* Name Input & Tag */}
                             <div className="w-full max-w-xs flex gap-2">

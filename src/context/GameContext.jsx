@@ -134,7 +134,7 @@ export const GameProvider = ({ children }) => {
     // Generate a random 4 digit discriminator
     const generateDiscriminator = () => Math.floor(1000 + Math.random() * 9000).toString();
 
-    const login = (name, avatarSeed, theme = 'theme-slate', accessory = null, explicitDiscriminator = null) => {
+    const login = (name, avatarSeed, theme = 'theme-slate', accessory = null, explicitDiscriminator = null, avatarImage = null, avatarType = 'dicebear') => {
         // Load known users
         let knownUsers = JSON.parse(localStorage.getItem('intruso_known_users') || '{}');
         const cleanName = name.trim();
@@ -162,9 +162,7 @@ export const GameProvider = ({ children }) => {
                 user = {
                     ...existing,
                     name: cleanName,
-                    avatarSeed: avatarSeed || existing.avatarSeed, // Keep existing avatar preferrably? Or update?
-                    // User probably wants to Log In, not overwrite avatar just by typing name.
-                    // But if they changed seed in UI... allow update.
+                    avatarSeed: existing.avatarSeed, // Keep existing avatar! (Ignore HomeView randomizer)
                     theme: theme || existing.theme || 'theme-slate',
                     accessory: accessory !== undefined ? accessory : existing.accessory,
                     lastLogin: Date.now()
@@ -190,7 +188,7 @@ export const GameProvider = ({ children }) => {
                 user = {
                     ...existing,
                     name: cleanName,
-                    avatarSeed: avatarSeed || existing.avatarSeed,
+                    avatarSeed: existing.avatarSeed, // Keep existing avatar
                     theme: theme || existing.theme || 'theme-slate',
                     accessory: accessory !== undefined ? accessory : existing.accessory,
                     lastLogin: Date.now()
@@ -202,6 +200,8 @@ export const GameProvider = ({ children }) => {
                     name: cleanName,
                     discriminator: generateDiscriminator(),
                     avatarSeed: avatarSeed || cleanName,
+                    avatarImage,
+                    avatarType,
                     theme,
                     accessory,
                     lastLogin: Date.now()

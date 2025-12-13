@@ -1,0 +1,31 @@
+{
+  "users": {
+    "133922d2-3de7-4d74-9ecc-a930d653532a": {
+      "profile": {
+        "id": "133922d2-3de7-4d74-9ecc-a930d653532a",
+        "name": "Diogo",
+        "discriminator": "1327",
+        "avatarSeed": "0.07337260817584812",
+        "theme": "theme-slate",
+        "accessory": null,
+        "lastLogin": 1765638474665
+      },
+      "stats": {
+        "totalGames": 0,
+        "wins": {
+          "impostor": 0,
+          "citizen": 0
+        },
+        "roles": {
+          "impostor": 0,
+          "citizen": 0
+        },
+        "categories": {},
+        "history": [],
+        "unlockedRewards": [],
+        "equippedReward": null
+      },
+      "lastLogin": 1765638474677
+    }
+  }
+}

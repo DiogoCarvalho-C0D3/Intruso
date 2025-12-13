@@ -87,6 +87,10 @@ export class GameManager {
         }
     }
 
+    async getLeaderboard(userId) {
+        return await this.db.getLeaderboard(userId);
+    }
+
     logoutUser(socketId) {
         delete this.connectedUsers[socketId];
     }

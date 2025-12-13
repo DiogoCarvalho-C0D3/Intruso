@@ -1,8 +1,9 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, RefreshCw, Check } from 'lucide-react';
+import { X, RefreshCw, Check, Camera } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Avatar from './Avatar';
+import { compressAvatar } from '../../utils/image';
 
 const THEMES = [
     { id: 'theme-slate', name: 'Ardósia', bg: 'bg-slate-950' },
@@ -15,19 +16,44 @@ const THEMES = [
 export default function SettingsModal({ isOpen, onClose, user, onSave }) {
     const [name, setName] = useState('');
     const [avatarSeed, setAvatarSeed] = useState('');
+    const [avatarImage, setAvatarImage] = useState(null);
+    const [avatarType, setAvatarType] = useState('dicebear');
     const [theme, setTheme] = useState('');
+    const [error, setError] = useState('');
 
     useEffect(() => {
         if (isOpen && user) {
             setName(user.name);
             setAvatarSeed(user.avatarSeed || user.name);
+            setAvatarImage(user.avatarImage || null);
+            setAvatarType(user.avatarType || 'dicebear');
             setTheme(user.theme || 'theme-slate');
         }
     }, [isOpen, user]);
 
     const handleSave = () => {
-        onSave({ name, avatarSeed, theme });
+        onSave({ name, avatarSeed, theme, avatarImage, avatarType });
         onClose();
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            try {
+                const compressed = await compressAvatar(file);
+                setAvatarImage(compressed);
+                setAvatarType('custom');
+            } catch (err) {
+                console.error("Compression failed", err);
+                setError("Erro ao carregar imagem.");
+            }
+        }
+    };
+
+    const regenAvatar = () => {
+        setAvatarSeed(Math.random().toString());
+        setAvatarType('dicebear');
+        setAvatarImage(null);
     };
 
     return (
@@ -62,12 +88,31 @@ export default function SettingsModal({ isOpen, onClose, user, onSave }) {
                         <div className="space-y-6">
                             {/* Avatar & Name */}
                             <div className="flex flex-col items-center gap-4">
-                                <div className="relative group cursor-pointer" onClick={() => setAvatarSeed(Math.random().toString())}>
-                                    <Avatar name={name} seed={avatarSeed} size="xl" className="shadow-xl border-4 border-skin-border group-hover:border-skin-primary transition-colors" />
-                                    <div className="absolute -bottom-2 -right-2 bg-skin-primary text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
+                                <div className="relative group">
+                                    <Avatar
+                                        name={name}
+                                        seed={avatarSeed}
+                                        image={avatarType === 'custom' ? avatarImage : null}
+                                        size="xl"
+                                        className="shadow-xl border-4 border-skin-border transition-colors"
+                                    />
+
+                                    {/* Refresh Button */}
+                                    <div
+                                        onClick={regenAvatar}
+                                        className="absolute -bottom-2 -right-2 bg-skin-primary text-white p-2 rounded-full shadow-lg cursor-pointer hover:rotate-180 transition-transform z-10"
+                                        title="Gerar Aleatório"
+                                    >
                                         <RefreshCw size={16} />
                                     </div>
+
+                                    {/* Upload Button */}
+                                    <label className="absolute -bottom-2 -left-2 bg-skin-secondary text-white p-2 rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform z-10" title="Carregar Foto">
+                                        <Camera size={16} />
+                                        <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                                    </label>
                                 </div>
+
                                 <input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
@@ -105,8 +150,8 @@ export default function SettingsModal({ isOpen, onClose, user, onSave }) {
                                 </div>
                             </div>
 
-                            <button onClick={handleSave} className="btn btn-primary w-full">
-                                Guardar
+                            <button onClick={handleSave} className="btn btn-primary w-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+                                Guardar Alterações
                             </button>
                         </div>
                     </motion.div>
