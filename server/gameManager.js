@@ -16,10 +16,17 @@ const DEFAULT_SETTINGS = {
     difficulty: 'medium'
 };
 
+import { StorageManager } from './storage.js';
+
 export class GameManager {
     constructor(io) {
         this.io = io;
         this.connectedUsers = {}; // socketId -> { id, name }
+        this.db = new StorageManager(); // Persistent Storage Abstraction
+    }
+
+    async init() {
+        await this.db.init();
     }
 
     // Helper to emit updates to a specific room
@@ -40,6 +47,44 @@ export class GameManager {
     // User Management
     loginUser(socketId, user) {
         this.connectedUsers[socketId] = user;
+    }
+
+    // New: Sync User with Persistence
+    // Called when user connects/logs in. Returns the Full User Object + Stats from DB
+    async syncUser(socketId, clientUser) {
+        // 1. Try to find user in DB by ID
+        let dbRecord = await this.db.getUser(clientUser.id);
+
+        // 2. If not found by ID (maybe new ID generated on client?),
+        // fallback to strict Name#Tag search because client might have regenerated ID
+        // after cache clear but remembers the Tag.
+        if (!dbRecord && clientUser.discriminator) {
+            dbRecord = await this.db.searchUser(clientUser.name, clientUser.discriminator);
+        }
+
+        if (dbRecord) {
+            // User exists!
+            // Update last seen
+            await this.db.saveUser({ ...dbRecord.profile, ...clientUser }, dbRecord.stats); // Merge client profile updates (like avatar)
+
+            // Return Safe Data
+            return {
+                user: { ...dbRecord.profile, ...clientUser, id: dbRecord.profile.id }, // Trust DB ID or Profile ID? Trust Profile ID from DB.
+                stats: dbRecord.stats
+            };
+        } else {
+            // New User
+            // Save initial record
+            await this.db.saveUser(clientUser, null);
+            return { user: clientUser, stats: null };
+        }
+    }
+
+    async saveUserStats(userId, stats) {
+        const record = await this.db.getUser(userId);
+        if (record) {
+            await this.db.saveUser(record.profile, stats);
+        }
     }
 
     logoutUser(socketId) {

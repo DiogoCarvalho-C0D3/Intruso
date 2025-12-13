@@ -16,7 +16,7 @@ const getServerUrl = () => {
 };
 
 // Socket initialization with autoConnect: false to allow setting auth/query before connect
-const socket = io(getServerUrl(), {
+export const socket = io(getServerUrl(), {
     autoConnect: false,
     reconnection: true,
     reconnectionAttempts: 10,

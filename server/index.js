@@ -27,6 +27,9 @@ const io = new Server(server, {
 
 const gameManager = new GameManager(io);
 
+// Init DB then Start Server
+await gameManager.init();
+
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
     const userId = socket.handshake.auth?.userId;
@@ -50,9 +53,27 @@ io.on('connection', (socket) => {
     socket.emit('rooms_list', gameManager.getPublicRooms());
     io.emit('online_users', gameManager.getOnlineUsers());
 
-    socket.on('user_login', ({ user }) => {
-        gameManager.loginUser(socket.id, user);
+    socket.on('user_login', async ({ user }) => {
+        // Sync with DB
+        const { user: syncedUser, stats } = await gameManager.syncUser(socket.id, user);
+
+        // Update connected list with the potentially corrected ID (if we recovered by Tag)
+        gameManager.loginUser(socket.id, syncedUser);
+
+        // Send back authoritative Stats
+        if (stats) {
+            socket.emit('stats_update', stats);
+        }
+
+        // Also maybe tell the client "Your ID is actually X" if it changed?
+        // Ideally client respects the sync.
+
         io.emit('online_users', gameManager.getOnlineUsers());
+    });
+
+    socket.on('save_stats', async ({ userId, stats }) => {
+        // Client pushing new stats to be persisted
+        await gameManager.saveUserStats(userId, stats);
     });
 
     socket.on('create_room', ({ user }) => {
