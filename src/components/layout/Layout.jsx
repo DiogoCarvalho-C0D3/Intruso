@@ -1,7 +1,9 @@
 
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Snowfall from '../ui/Snowfall';
 import ChristmasDecorations from '../ui/ChristmasDecorations';
+import { APP_VERSION } from '../../data/changelog';
 
 export default function Layout({
     header,
@@ -18,7 +20,7 @@ export default function Layout({
             <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top)] bg-skin-base z-50" />
 
             {/* Content Container */}
-            <div className="flex-1 flex flex-col w-full max-w-lg mx-auto bg-skin-base h-full relative shadow-2xl z-10">
+            <div className="flex-1 flex flex-col w-full max-w-lg mx-auto bg-skin-base h-full relative shadow-2xl z-10 w-full">
 
                 {/* Header */}
                 {header && (
@@ -46,9 +48,12 @@ export default function Layout({
                 )}
 
                 {/* Version Watermark */}
-                <div className="absolute bottom-1 right-2 z-50 pointer-events-none opacity-20 text-[10px] font-mono text-skin-muted">
-                    v1.2.0-xmas
-                </div>
+                <Link
+                    to="/changelog"
+                    className="absolute bottom-1 right-2 z-50 opacity-30 hover:opacity-100 transition-opacity text-[10px] font-mono text-skin-muted pointer-events-auto cursor-pointer"
+                >
+                    v{APP_VERSION}
+                </Link>
             </div>
         </div>
     );

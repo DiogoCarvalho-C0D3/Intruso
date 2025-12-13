@@ -54,6 +54,63 @@ export const MISSIONS = [
         target: 1,
         statKey: 'categories.Animais',
         reward: { id: 'frame_nature', name: 'Selvagem', frameClass: 'border-4 border-emerald-400 border-dotted ring-2 ring-emerald-600 ring-offset-2 ring-offset-emerald-900/20', type: 'frame' }
+    },
+    // --- Creative Expansion v1.3.2 ---
+    {
+        id: 'addict',
+        title: 'O Viciado',
+        description: 'Joga 50 jogos',
+        target: 50,
+        statKey: 'totalGames',
+        reward: { id: 'frame_legend', name: 'Lenda Urbana', frameClass: 'ring-4 ring-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.8)] border-2 border-pink-500 animate-pulse', type: 'frame' }
+    },
+    {
+        id: 'agent_007',
+        title: '007',
+        description: 'Ganha como Intruso 7 vezes',
+        target: 7,
+        statKey: 'wins.impostor',
+        reward: { id: 'frame_secret_agent', name: 'Agente Secreto', frameClass: 'ring-4 ring-black border-4 border-white shadow-2xl grayscale', type: 'frame' }
+    },
+    {
+        id: 'sheriff',
+        title: 'Xerife',
+        description: 'Ganha como Cidadão 10 vezes',
+        target: 10,
+        statKey: 'wins.citizen',
+        reward: { id: 'frame_sheriff', name: 'Lei & Ordem', frameClass: 'ring-4 ring-yellow-500 border-4 border-yellow-800 border-double shadow-lg', type: 'frame' }
+    },
+    {
+        id: 'cinephile',
+        title: 'Cinéfilo',
+        description: 'Joga 5 jogos de Cinema',
+        target: 5,
+        statKey: 'categories.Cinema',
+        reward: { id: 'frame_hollywood', name: 'Hollywood', frameClass: 'ring-4 ring-amber-400 border-4 border-black border-dashed', type: 'frame' }
+    },
+    {
+        id: 'gourmet',
+        title: 'Gourmet',
+        description: 'Joga 5 jogos de Comida',
+        target: 5,
+        statKey: 'categories.Comida',
+        reward: { id: 'frame_chef', name: 'Chef', frameClass: 'ring-4 ring-white shadow-lg border-2 border-slate-200', type: 'frame' }
+    },
+    {
+        id: 'hacker',
+        title: 'Hacker',
+        description: 'Joga 5 jogos de Tecnologia',
+        target: 5,
+        statKey: 'categories.Tecnologia',
+        reward: { id: 'frame_matrix', name: 'The Matrix', frameClass: 'ring-2 ring-green-500 border-2 border-black border-dashed shadow-[0_0_10px_rgba(34,197,94,0.6)]', type: 'frame' }
+    },
+    {
+        id: 'globetrotter',
+        title: 'Globetrotter',
+        description: 'Joga 5 jogos de Países',
+        target: 5,
+        statKey: 'categories.Países',
+        reward: { id: 'frame_passport', name: 'Viajante', frameClass: 'ring-4 ring-blue-500 border-4 border-red-500 border-dashed bg-white', type: 'frame' }
     }
 ];
 

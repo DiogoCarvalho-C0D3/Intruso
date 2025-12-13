@@ -103,7 +103,14 @@ export default function ResultPhase({ gameState, onRestart }) {
                             .map(p => (
                                 <div key={p.id} className="flex items-center gap-4 p-4 bg-red-500/10 border border-red-500/20 rounded-xl relative overflow-hidden">
                                     <div className="absolute inset-0 bg-red-500/5 z-0" />
-                                    <Avatar name={p.name} seed={p.avatarSeed} size="lg" className="border-2 border-red-500 z-10" accessory={p.accessory} />
+                                    <Avatar
+                                        name={p.name}
+                                        seed={p.avatarSeed}
+                                        image={p.avatarType === 'custom' ? p.avatarImage : null}
+                                        size="lg"
+                                        className="border-2 border-red-500 z-10"
+                                        accessory={p.accessory}
+                                    />
                                     <div className="z-10">
                                         <div className="text-xl font-bold text-skin-text">{p.name}</div>
                                         <div className="text-xs font-bold text-red-400 uppercase tracking-wider">Inimigo no meio de nós</div>

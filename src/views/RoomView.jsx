@@ -329,6 +329,7 @@ export default function RoomView() {
                                     <Avatar
                                         name={p.name}
                                         seed={p.avatarSeed}
+                                        image={p.avatarType === 'custom' ? p.avatarImage : null}
                                         size="md"
                                         className={`border-2 shadow-lg transition-transform hover:scale-105 ${p.id === currentRoom.hostId ? 'border-yellow-500/50' : 'border-skin-border'}`}
                                         accessory={p.accessory}

@@ -177,7 +177,18 @@ class JsonStorage {
         const categories = {
             totalGames: u => u.stats?.totalGames || 0,
             impostorWins: u => u.stats?.wins?.impostor || 0,
-            citizenWins: u => u.stats?.wins?.citizen || 0
+            citizenWins: u => u.stats?.wins?.citizen || 0,
+            // New Skill Categories (Min 3 games to qualify)
+            impostorRate: u => {
+                const played = u.stats?.roles?.impostor || 0;
+                if (played < 3) return -1;
+                return ((u.stats?.wins?.impostor || 0) / played) * 100;
+            },
+            citizenRate: u => {
+                const played = u.stats?.roles?.citizen || 0;
+                if (played < 3) return -1;
+                return ((u.stats?.wins?.citizen || 0) / played) * 100;
+            }
         };
 
         const result = {};

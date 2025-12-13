@@ -46,28 +46,31 @@ export default function MissionsModal({ isOpen, onClose, stats, onEquip }) {
                         {/* Rewards Collection */}
                         <div>
                             <h3 className="text-xs font-bold text-skin-muted uppercase tracking-widest mb-3">A tua coleção</h3>
-                            <div className="grid grid-cols-4 gap-3">
-                                {MISSIONS.map(mission => {
-                                    const isUnlocked = unlockedSet.has(mission.reward.id);
+                            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                                {/* Default Clean Option */}
+                                <button
+                                    onClick={() => onEquip(null)}
+                                    className={`flex-none w-16 h-16 rounded-xl flex items-center justify-center text-xs font-bold text-skin-muted border-2 transition-all active:scale-95 ${!stats.equippedReward
+                                        ? 'bg-skin-primary/20 border-skin-primary text-skin-primary'
+                                        : 'bg-skin-base border-skin-border hover:border-skin-primary/50'
+                                        }`}
+                                >
+                                    Nada
+                                </button>
+
+                                {MISSIONS.filter(m => unlockedSet.has(m.reward.id)).map(mission => {
                                     const isEquipped = stats.equippedReward === mission.reward.id;
 
                                     return (
                                         <button
                                             key={mission.id}
-                                            disabled={!isUnlocked}
-                                            onClick={() => isUnlocked && onEquip(mission.reward.id)}
-                                            className={`aspect-square rounded-xl flex items-center justify-center text-3xl relative border-2 transition-all active:scale-95 ${isEquipped
+                                            onClick={() => onEquip(mission.reward.id)}
+                                            className={`flex-none w-16 h-16 rounded-xl flex items-center justify-center text-3xl relative border-2 transition-all active:scale-95 ${isEquipped
                                                 ? 'bg-skin-primary/20 border-skin-primary shadow-lg shadow-skin-primary/20'
-                                                : isUnlocked
-                                                    ? 'bg-skin-base border-skin-border hover:border-skin-primary/50 cursor-pointer'
-                                                    : 'bg-skin-base/30 border-dashed border-skin-border opacity-50 cursor-not-allowed'
+                                                : 'bg-skin-base border-skin-border hover:border-skin-primary/50 cursor-pointer'
                                                 }`}
                                         >
-                                            {// Show frame preview if unlocked
-                                                isUnlocked ? (
-                                                    <div className={`w-8 h-8 rounded-full bg-slate-700 ${mission.reward.frameClass}`}></div>
-                                                ) : <Lock size={16} className="text-skin-muted" />
-                                            }
+                                            <div className={`w-10 h-10 rounded-full bg-slate-700 ${mission.reward.frameClass}`}></div>
 
                                             {isEquipped && (
                                                 <div className="absolute -top-2 -right-2 bg-skin-primary text-white p-0.5 rounded-full border-2 border-skin-card z-10">
@@ -77,16 +80,12 @@ export default function MissionsModal({ isOpen, onClose, stats, onEquip }) {
                                         </button>
                                     );
                                 })}
-                                {/* Default Clean Option */}
-                                <button
-                                    onClick={() => onEquip(null)}
-                                    className={`aspect-square rounded-xl flex items-center justify-center text-xs font-bold text-skin-muted border-2 transition-all active:scale-95 ${!stats.equippedReward
-                                        ? 'bg-skin-primary/20 border-skin-primary text-skin-primary'
-                                        : 'bg-skin-base border-skin-border hover:border-skin-primary/50'
-                                        }`}
-                                >
-                                    Nada
-                                </button>
+
+                                {unlockedSet.size === 0 && (
+                                    <div className="flex items-center text-xs text-skin-muted italic px-2 whitespace-nowrap">
+                                        Completa missões para desbloquear!
+                                    </div>
+                                )}
                             </div>
                         </div>
 

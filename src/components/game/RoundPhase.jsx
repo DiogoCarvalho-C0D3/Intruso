@@ -68,6 +68,7 @@ export default function RoundPhase({ gameState, onNextTurn }) {
                             <Avatar
                                 name={currentPlayer?.name}
                                 seed={currentPlayer?.avatarSeed}
+                                image={currentPlayer?.avatarType === 'custom' ? currentPlayer?.avatarImage : null}
                                 size="xl"
                                 className={`relative z-10 shadow-2xl transition-all duration-300 ${isMyTurn ? 'border-4 border-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.3)]' : 'border-4 border-skin-border grayscale-[0.3]'}`}
                                 accessory={currentPlayer?.accessory}
@@ -97,7 +98,13 @@ export default function RoundPhase({ gameState, onNextTurn }) {
                 <div className="mb-4 flex items-center justify-center gap-2 opacity-50">
                     <span className="text-[10px] uppercase font-bold tracking-widest text-skin-muted">Próximo:</span>
                     <div className="flex items-center gap-2 bg-skin-card/80 px-3 py-1 rounded-full border border-skin-border">
-                        <Avatar name={nextPlayer?.name} seed={nextPlayer?.avatarSeed} size="xs" accessory={nextPlayer?.accessory} />
+                        <Avatar
+                            name={nextPlayer?.name}
+                            seed={nextPlayer?.avatarSeed}
+                            image={nextPlayer?.avatarType === 'custom' ? nextPlayer?.avatarImage : null}
+                            size="xs"
+                            accessory={nextPlayer?.accessory}
+                        />
                         <span className="text-xs font-bold text-skin-text">{nextPlayer?.name}</span>
                     </div>
                 </div>

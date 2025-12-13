@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { useStatistics } from '../hooks/useStatistics';
 import Avatar from '../components/ui/Avatar';
-import StatsModal from '../components/ui/StatsModal';
 import MissionsModal from '../components/ui/MissionsModal';
 import SettingsModal from '../components/ui/SettingsModal';
 import Layout from '../components/layout/Layout';
@@ -16,7 +15,6 @@ export default function LobbyBrowseView() {
     const { stats, resetStats, equipReward } = useStatistics(currentUser?.id);
     const navigate = useNavigate();
     const [joinCode, setJoinCode] = useState('');
-    const [isStatsOpen, setIsStatsOpen] = useState(false);
     const [isMissionsOpen, setIsMissionsOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -42,7 +40,13 @@ export default function LobbyBrowseView() {
     const header = (
         <>
             <div className="flex items-center gap-3">
-                <Avatar name={currentUser?.name} seed={currentUser?.avatarSeed} size="sm" accessory={currentUser?.accessory} />
+                <Avatar
+                    name={currentUser?.name}
+                    seed={currentUser?.avatarSeed}
+                    image={currentUser?.avatarType === 'custom' ? currentUser?.avatarImage : null}
+                    size="sm"
+                    accessory={currentUser?.accessory}
+                />
                 <div className="flex flex-col">
                     <span className="font-bold text-sm leading-none text-skin-text">
                         {currentUser?.name}
@@ -72,13 +76,7 @@ export default function LobbyBrowseView() {
                 >
                     <Settings size={18} />
                 </button>
-                <button
-                    onClick={() => setIsStatsOpen(true)}
-                    className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-skin-muted hover:text-skin-text hover:bg-skin-primary/20 hover:text-skin-primary transition-colors"
-                    title="Meu Currículo"
-                >
-                    <BarChart2 size={18} />
-                </button>
+
                 <button
                     onClick={() => navigate('/leaderboard')}
                     className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
@@ -99,13 +97,6 @@ export default function LobbyBrowseView() {
 
     return (
         <Layout header={header}>
-            <StatsModal
-                isOpen={isStatsOpen}
-                onClose={() => setIsStatsOpen(false)}
-                stats={stats}
-                onReset={resetStats}
-            />
-
             <MissionsModal
                 isOpen={isMissionsOpen}
                 onClose={() => setIsMissionsOpen(false)}
@@ -181,7 +172,14 @@ export default function LobbyBrowseView() {
                         ) : (
                             onlineUsers.map((u, i) => (
                                 <div key={u.socketId || i} className="flex flex-col items-center gap-2 min-w-[60px]">
-                                    <Avatar name={u.name} seed={u.avatarSeed || u.name} size="sm" className="border-2 border-skin-border" accessory={u.accessory} />
+                                    <Avatar
+                                        name={u.name}
+                                        seed={u.avatarSeed || u.name}
+                                        image={u.avatarType === 'custom' ? u.avatarImage : null}
+                                        size="sm"
+                                        className="border-2 border-skin-border"
+                                        accessory={u.accessory}
+                                    />
                                     <span className="text-[10px] font-medium text-skin-muted truncate max-w-full">{u.name}</span>
                                 </div>
                             ))
