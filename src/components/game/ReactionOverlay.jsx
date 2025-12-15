@@ -36,11 +36,16 @@ export default function ReactionOverlay() {
                 {reactions.map(r => (
                     <motion.div
                         key={r.id}
-                        initial={{ opacity: 0, y: 100, scale: 0.5, x: `${r.x}%` }}
-                        animate={{ opacity: 1, y: -500, scale: 1.5, rotate: Math.random() * 20 - 10 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 2, ease: "easeOut" }}
-                        className="absolute bottom-20 text-4xl"
+                        initial={{ opacity: 0, y: 100, scale: 0.5, x: `${r.x}vw` }}
+                        animate={{
+                            opacity: [0, 1, 1, 0], // Fade in, stay, fade out
+                            y: -800, // Move way up
+                            scale: [0.5, 1.2, 1],
+                            rotate: Math.random() * 40 - 20
+                        }}
+                        transition={{ duration: 4, ease: "easeOut" }} // Slower duration for "bubble up" feel
+                        className="absolute bottom-0 text-5xl pointer-events-none drop-shadow-lg"
+                        style={{ left: 0 }} // x is handled by transform x in vw
                     >
                         {r.emoji}
                     </motion.div>

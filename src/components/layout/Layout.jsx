@@ -49,7 +49,7 @@ export default function Layout({
 
                 {/* Footer */}
                 {footer && (
-                    <footer className="flex-none p-4 pt-4 bg-skin-base border-t border-skin-border z-40 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                    <footer className="flex-none p-4 pt-4 bg-skin-base border-t border-skin-border z-40 pb-[calc(2rem+env(safe-area-inset-bottom))]">
                         {footer}
                     </footer>
                 )}
@@ -60,7 +60,7 @@ export default function Layout({
                 {/* Version Watermark */}
                 <Link
                     to="/changelog"
-                    className="absolute bottom-1 right-2 z-50 opacity-30 hover:opacity-100 transition-opacity text-[10px] font-mono text-skin-muted pointer-events-auto cursor-pointer"
+                    className="absolute bottom-[calc(0.5rem+env(safe-area-inset-bottom))] right-4 z-50 opacity-30 hover:opacity-100 transition-opacity text-[10px] font-mono text-skin-muted pointer-events-auto cursor-pointer"
                 >
                     v{APP_VERSION}
                 </Link>
@@ -76,7 +76,7 @@ function SoundToggle() {
     return (
         <button
             onClick={() => { toggleMute(); playClick(); }}
-            className="absolute bottom-1 left-2 z-50 opacity-30 hover:opacity-100 transition-opacity p-1 text-skin-muted hover:text-skin-primary"
+            className="absolute bottom-[calc(0.5rem+env(safe-area-inset-bottom))] left-4 z-50 opacity-30 hover:opacity-100 transition-opacity p-1 text-skin-muted hover:text-skin-primary"
         >
             <Icon size={14} />
         </button>

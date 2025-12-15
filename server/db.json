@@ -94,6 +94,33 @@
         "equippedReward": null
       },
       "lastLogin": 1765646768297
+    },
+    "af5cb9cb-8a70-40ee-8dc2-f34050cbcda4": {
+      "profile": {
+        "id": "af5cb9cb-8a70-40ee-8dc2-f34050cbcda4",
+        "name": "C_TESTE_856",
+        "isGuest": true,
+        "avatarSeed": "0.8947822141900854",
+        "avatarType": "dicebear",
+        "avatarImage": null,
+        "customDecks": []
+      },
+      "stats": {
+        "totalGames": 0,
+        "wins": {
+          "impostor": 0,
+          "citizen": 0
+        },
+        "roles": {
+          "impostor": 0,
+          "citizen": 0
+        },
+        "categories": {},
+        "history": [],
+        "unlockedRewards": [],
+        "equippedReward": null
+      },
+      "lastLogin": 1765797457377
     }
   }
 }

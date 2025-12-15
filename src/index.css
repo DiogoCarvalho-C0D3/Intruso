@@ -87,6 +87,10 @@
     /* green-700 */
   }
 
+  .bg-radial-splash {
+    background-image: radial-gradient(closest-side, rgba(var(--color-primary), 0.4) 0%, transparent 100%);
+  }
+
   body {
     font-family: 'Outfit', sans-serif;
     @apply bg-skin-base text-skin-text min-h-screen overflow-x-hidden antialiased;
@@ -147,5 +151,19 @@
   /* 4. Utilities */
   .center-xy {
     @apply flex flex-col items-center justify-center text-center;
+  }
+
+  /* 5. Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-skin-border rounded-full hover:bg-skin-primary/50 transition-colors;
   }
 }

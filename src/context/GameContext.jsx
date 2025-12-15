@@ -238,7 +238,8 @@ export const GameProvider = ({ children }) => {
             updateRoomState,
             sendPlayerReady,
             sendHostAction,
-            setError
+            setError,
+            socket // Expose socket instance for components
         }}>
             {children}
         </GameContext.Provider>

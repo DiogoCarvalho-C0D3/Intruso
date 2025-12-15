@@ -61,13 +61,16 @@ export default function LobbyBrowseView() {
                 </div>
             </div>
             <div className="flex items-center gap-2">
-                <button
-                    onClick={() => setIsMissionsOpen(true)}
-                    className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-pink-400 hover:text-pink-500 hover:bg-pink-500/10 transition-colors"
-                    title="Missões"
-                >
-                    <Gift size={18} />
-                </button>
+                {!currentUser?.isGuest && (
+                    <button
+                        onClick={() => setIsMissionsOpen(true)}
+                        className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-pink-400 hover:text-pink-500 hover:bg-pink-500/10 transition-colors"
+                        title="Missões"
+                    >
+                        <Gift size={18} />
+                    </button>
+                )}
+
                 <button
                     onClick={() => setIsSettingsOpen(true)}
                     className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-skin-muted hover:text-skin-text hover:bg-skin-border transition-colors"
@@ -76,15 +79,15 @@ export default function LobbyBrowseView() {
                     <Settings size={18} />
                 </button>
 
-
-
-                <button
-                    onClick={() => navigate('/leaderboard')}
-                    className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
-                    title="Classificação"
-                >
-                    <Trophy size={18} />
-                </button>
+                {!currentUser?.isGuest && (
+                    <button
+                        onClick={() => navigate('/leaderboard')}
+                        className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors"
+                        title="Classificação"
+                    >
+                        <Trophy size={18} />
+                    </button>
+                )}
                 <button
                     onClick={() => { logout(); navigate('/'); }}
                     className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-skin-muted hover:text-skin-text hover:bg-red-500/20 hover:text-red-400 transition-colors"

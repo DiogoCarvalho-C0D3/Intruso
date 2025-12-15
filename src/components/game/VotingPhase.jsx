@@ -53,6 +53,30 @@ export default function VotingPhase({ gameState, onVote }) {
     }
 
     const isRunoff = gameState.isRunoff;
+    const isImpostor = gameState.impostorIds?.includes(currentUser.id);
+
+    // Impostors cannot vote in Runoff (Tie-breaker)
+    if (isRunoff && isImpostor) {
+        return (
+            <div className="view-container flex flex-col items-center justify-center p-6 text-center animate-fade-in relative">
+                <div className="mb-6 p-6 bg-skin-card rounded-full border border-skin-border opacity-50">
+                    <AlertTriangle size={48} className="text-skin-muted" />
+                </div>
+                <h2 className="text-xl font-bold mb-2 text-skin-text">Desempate em Curso</h2>
+                <p className="text-skin-muted max-w-xs mx-auto">
+                    Como Intruso, não podes votar no desempate. Aguarda que os civis decidam o destino!
+                </p>
+
+                {/* Visual indicator of tie candidates */}
+                <div className="mt-8 flex gap-4 opacity-50 grayscale">
+                    {currentRoom.players.filter(p => gameState.runoffCandidates.includes(p.id)).map(p => (
+                        <Avatar key={p.id} name={p.name} seed={p.avatarSeed} image={p.avatarType === 'custom' ? p.avatarImage : null} size="sm" accessory={p.accessory} />
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     const candidates = isRunoff
         ? currentRoom.players.filter(p => gameState.runoffCandidates.includes(p.id))
         : currentRoom.players;

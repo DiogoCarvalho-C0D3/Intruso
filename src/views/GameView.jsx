@@ -125,10 +125,15 @@ export default function GameView() {
         const newVotes = { ...gameState.votes, [currentUser.id]: targetId };
         const updates = { votes: newVotes };
 
-        // Check if everyone has voted
-        if (Object.keys(newVotes).length >= currentRoom.players.length) {
+        // Determine required votes
+        const impostorIds = gameState.impostorIds || [];
+        const totalPlayers = currentRoom.players.length;
+        // In Runoff, Impostors don't vote, so threshold is lower
+        const requiredVotes = gameState.isRunoff ? (totalPlayers - impostorIds.length) : totalPlayers;
+
+        // Check if everyone (who needs to) has voted
+        if (Object.keys(newVotes).length >= requiredVotes) {
             // Calculate Results Logic
-            const impostorIds = gameState.impostorIds || [];
 
             // 1. Tally votes (EXCLUDING Impostors)
             const voteCounts = {};

@@ -142,10 +142,13 @@ export default function RevealPhase({ gameState, onReady }) {
                                 <>
                                     <div className="flex flex-col items-center gap-2 w-full">
                                         <span className="text-xs font-bold uppercase tracking-widest text-skin-primary/80">Palavra Secreta</span>
-                                        <div className="text-skin-text font-black text-4xl break-words text-center w-full leading-tight uppercase relative z-10">
-                                            {word}
+                                        <div className="relative w-full py-4 mb-2">
+                                            <div className="text-skin-text font-black text-4xl break-words text-center w-full leading-tight uppercase relative z-10 px-4 drop-shadow-[0_0_15px_rgba(var(--color-primary),0.5)]">
+                                                {word}
+                                            </div>
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-32 -z-0 pointer-events-none"
+                                                style={{ background: 'radial-gradient(closest-side, rgb(var(--color-primary) / 0.4) 0%, transparent 100%)' }}></div>
                                         </div>
-                                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-12 bg-skin-primary/20 blur-xl -z-0"></div>
                                     </div>
                                     <p className="text-center text-sm text-skin-muted">
                                         Memoriza a palavra acima.
