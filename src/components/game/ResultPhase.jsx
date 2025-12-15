@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { useStatistics } from '../../hooks/useStatistics';
 import Button from '../ui/Button';
@@ -6,10 +6,18 @@ import Avatar from '../ui/Avatar';
 import Card from '../ui/Card';
 import { Crown, Skull, RotateCcw, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
 export default function ResultPhase({ gameState, onRestart }) {
-    const { currentRoom, currentUser, leaveRoom } = useGame();
+    const { currentRoom, currentUser, leaveRoom, giveKudos } = useGame();
     const { recordGame } = useStatistics(currentUser?.id);
+    const [givenKudos, setGivenKudos] = useState({}); // { targetId: 'detective' }
+
+    const handleGiveKudos = (targetId, type) => {
+        if (givenKudos[targetId]) return;
+        giveKudos(targetId, type);
+        setGivenKudos(prev => ({ ...prev, [targetId]: type }));
+    };
 
     // Calculate results
     const votes = gameState.votes;
@@ -61,6 +69,34 @@ export default function ResultPhase({ gameState, onRestart }) {
             won: didIWin,
             category: gameState.category
         });
+
+        // VICTORY FX
+        if (didIWin) {
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            const frame = () => {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#a786ff', '#fd8bbc', '#eca184', '#f8deb1'] // Theme colors
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#a786ff', '#fd8bbc', '#eca184', '#f8deb1']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            };
+            setTimeout(frame, 500); // Delay slightly for banner pop
+        }
     }, [gameState.gameId]);
 
     const VictoryIcon = didIWin ? Crown : Skull;
@@ -78,7 +114,7 @@ export default function ResultPhase({ gameState, onRestart }) {
                         initial={{ scale: 0.5, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                        className={`inline-flex items-center justify-center p-6 rounded-full mb-4 shadow-2xl ${bannerColor}`}
+                        className={`inline-flex items-center justify-center p-6 rounded-full mb-4 shadow-2xl ${bannerColor} ${!didIWin ? 'animate-shake' : ''}`}
                     >
                         <VictoryIcon size={64} strokeWidth={1.5} />
                     </motion.div>
@@ -150,6 +186,33 @@ export default function ResultPhase({ gameState, onRestart }) {
                                             <div className="flex items-center gap-2">
                                                 <span className={`font-bold ${isEliminated ? 'text-red-400' : 'text-skin-text'}`}>{player.name}</span>
                                                 {isEliminated && <span className="text-[10px] bg-red-500 text-white px-1 rounded uppercase font-bold">Eliminado</span>}
+
+                                                {/* KUDOS BUTTONS */}
+                                                {player.id !== currentUser.id && (
+                                                    <div className="flex gap-1 ml-2 opacity-100 sm:opacity-50 hover:opacity-100 transition-opacity">
+                                                        <KudosButton
+                                                            type="detective"
+                                                            icon="🕵️"
+                                                            targetId={player.id}
+                                                            given={givenKudos[player.id]}
+                                                            onGive={handleGiveKudos}
+                                                        />
+                                                        <KudosButton
+                                                            type="liar"
+                                                            icon="🎭"
+                                                            targetId={player.id}
+                                                            given={givenKudos[player.id]}
+                                                            onGive={handleGiveKudos}
+                                                        />
+                                                        <KudosButton
+                                                            type="mvp"
+                                                            icon="🧠"
+                                                            targetId={player.id}
+                                                            given={givenKudos[player.id]}
+                                                            onGive={handleGiveKudos}
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                             <span className="text-xs font-bold text-skin-muted">{validCount} votos válidos ({percentage}%)</span>
                                         </div>
@@ -201,5 +264,21 @@ export default function ResultPhase({ gameState, onRestart }) {
                 </button>
             </div>
         </div>
+    );
+}
+
+function KudosButton({ type, icon, targetId, given, onGive }) {
+    const isGiven = given === type;
+    const isDisabled = !!given; // If given anything to this person, disable all
+
+    return (
+        <button
+            onClick={() => onGive(targetId, type)}
+            disabled={isDisabled}
+            className={`w-6 h-6 flex items-center justify-center rounded-full transition-all active:scale-95 ${isGiven ? 'bg-skin-primary text-white scale-110 shadow-lg ring-2 ring-skin-primary/50' : isDisabled ? 'opacity-20 cursor-not-allowed grayscale' : 'bg-skin-card hover:bg-skin-base hover:scale-110'}`}
+            title={type.toUpperCase()}
+        >
+            <span className="text-xs leading-none">{icon}</span>
+        </button>
     );
 }

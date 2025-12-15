@@ -29,9 +29,23 @@ export const GameProvider = ({ children }) => {
     const [currentRoom, setCurrentRoom] = useState(null);
     const [publicRooms, setPublicRooms] = useState([]);
     const [onlineUsers, setOnlineUsers] = useState([]);
+    const [notifications, setNotifications] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [isConnected, setIsConnected] = useState(socket.connected);
+
+    const addNotification = (notif) => {
+        const id = Date.now() + Math.random();
+        setNotifications(prev => [...prev, { ...notif, id }]);
+        // Auto remove after 5s unless it has action?
+        if (!notif.action) {
+            setTimeout(() => removeNotification(id), 5000);
+        }
+    };
+
+    const removeNotification = (id) => {
+        setNotifications(prev => prev.filter(n => n.id !== id));
+    };
 
     // Connection management
     useEffect(() => {
@@ -45,11 +59,8 @@ export const GameProvider = ({ children }) => {
 
         const onConnect = () => {
             setIsConnected(true);
-            // Re-authenticate if we have a user
             const user = currentUser || (savedUser ? JSON.parse(savedUser) : null);
-            if (user) {
-                // We use a silent reconnect logic here if needed, or rely on socket.auth
-            }
+            if (user) { /* reconnect logic */ }
         };
 
         const onSessionRestored = ({ room, user }) => {
@@ -86,6 +97,28 @@ export const GameProvider = ({ children }) => {
         socket.on('rooms_list', setPublicRooms);
         socket.on('online_users', setOnlineUsers);
 
+        // Social Listeners
+        socket.on('profile_updated', (updatedUser) => {
+            setCurrentUser(prev => ({ ...prev, ...updatedUser }));
+            localStorage.setItem('intruso_user', JSON.stringify({ ...currentUser, ...updatedUser }));
+        });
+
+        socket.on('notification', ({ message, type }) => {
+            addNotification({ message, type });
+        });
+
+        socket.on('invite_received', ({ roomId, inviterName }) => {
+            addNotification({
+                id: 'invite-' + roomId,
+                type: 'invite',
+                message: `Convite de ${inviterName}`,
+                action: {
+                    label: 'Entrar',
+                    callback: () => joinRoom(roomId)
+                }
+            });
+        });
+
         if (!socket.connected) {
             socket.connect();
         }
@@ -101,6 +134,9 @@ export const GameProvider = ({ children }) => {
             socket.off('force_leave');
             socket.off('rooms_list');
             socket.off('online_users');
+            socket.off('profile_updated');
+            socket.off('notification');
+            socket.off('invite_received');
         };
     }, []);
 
@@ -110,7 +146,8 @@ export const GameProvider = ({ children }) => {
         document.body.className = theme;
     }, [currentUser]);
 
-    // --- AUTH 2.0 ---
+    // ... (Auth Logic) ...
+
     const login = (action, payload) => {
         return new Promise((resolve, reject) => {
             if (!socket) return reject(new Error('Erro de conexão.'));
@@ -218,6 +255,28 @@ export const GameProvider = ({ children }) => {
         socket.emit('update_profile', { userId: currentUser.id, updates });
     };
 
+    // Social Actions
+    const addFriend = ({ action = 'SEND_REQUEST', targetId, targetName, requesterId }) => {
+        if (!currentUser) return;
+        socket.emit('friend_action', {
+            action,
+            payload: { userId: currentUser.id, targetId, targetName, requesterId }
+        });
+    };
+
+    const giveKudos = (targetId, kudoType) => {
+        if (!currentUser) return;
+        socket.emit('give_kudos', { targetId, kudoType });
+    };
+
+    const sendInvite = (targetId) => {
+        if (!currentUser || !currentRoom) return;
+        socket.emit('friend_action', {
+            action: 'INVITE',
+            payload: { userId: currentUser.id, targetId, roomId: currentRoom.id, inviterName: currentUser.name }
+        });
+    };
+
     return (
         <GameContext.Provider value={{
             currentUser,
@@ -239,6 +298,14 @@ export const GameProvider = ({ children }) => {
             sendPlayerReady,
             sendHostAction,
             setError,
+            // Social
+            notifications,
+            addNotification, // Helper if needed
+            removeNotification,
+            addFriend,
+            removeFriend: (targetId) => addFriend({ action: 'REMOVE_FRIEND', targetId }),
+            giveKudos,
+            sendInvite,
             socket // Expose socket instance for components
         }}>
             {children}

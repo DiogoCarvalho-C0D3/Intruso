@@ -113,6 +113,38 @@ export function SoundProvider({ children }) {
         osc.stop(ctx.currentTime + 1);
     };
 
+    // Timer Logic (Procedural Loop)
+    const timerRef = useRef(null);
+    const startTimerSound = (intensity = 1) => {
+        if (isMuted || !audioCtxRef.current) return;
+        if (timerRef.current) clearTimeout(timerRef.current);
+
+        const tick = () => {
+            if (isMuted) return;
+            // Woodblock-ish sound
+            playTone(800, 'square', 0.03, 0.05 * intensity);
+
+            // Loop based on intensity (1 = normal 1000ms, 2 = fast 500ms, etc)
+            // But usually we just want 1s, then faster.
+            // Let's make it simpler: explicit speed param? 
+            // The request says "accelerates".
+            // So we will just expose a playTick() and let the component loop? 
+            // Or handle loop here. Handling loop here is cleaner.
+
+            const delay = Math.max(100, 1000 / intensity);
+            timerRef.current = setTimeout(tick, delay);
+        };
+        tick();
+    };
+
+    const stopTimerSound = () => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+    };
+
+
     const toggleMute = () => setIsMuted(prev => !prev);
 
     return (
@@ -124,7 +156,9 @@ export function SoundProvider({ children }) {
             playSuccess,
             playError,
             playBuzzer,
-            playReveal
+            playReveal,
+            startTimerSound,
+            stopTimerSound
         }}>
             {children}
         </SoundContext.Provider>

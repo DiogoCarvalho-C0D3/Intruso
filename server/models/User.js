@@ -11,7 +11,16 @@ const UserSchema = new mongoose.Schema({
     theme: { type: String },
     accessory: { type: String },
     customDecks: { type: Array, default: [] },
-    stats: { type: Object, default: {} },
+    friendRequests: { type: Array, default: [] }, // [{ id, name, type: 'incoming'|'outgoing' }]
+    friends: { type: Array, default: [] }, // [{ id, name }]
+    stats: {
+        type: Object,
+        default: {
+            totalGames: 0,
+            wins: { impostor: 0, citizen: 0 },
+            kudos: { detective: 0, liar: 0, mvp: 0 }
+        }
+    },
     lastLogin: { type: Date, default: Date.now }
 }, { timestamps: true });
 

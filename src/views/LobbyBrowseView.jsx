@@ -5,33 +5,35 @@ import { useStatistics } from '../hooks/useStatistics';
 import Avatar from '../components/ui/Avatar';
 import MissionsModal from '../components/ui/MissionsModal';
 import SettingsModal from '../components/ui/SettingsModal';
+import ProfileModal from '../components/ui/ProfileModal';
+import FriendList from '../components/social/FriendList';
 import Layout from '../components/layout/Layout';
 import { Plus, Search, LogOut, WifiOff, Users, ArrowRight, BarChart2, Settings, Gift, Trophy, Book } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { REWARDS_MAP } from '../data/missions';
 
 export default function LobbyBrowseView() {
-    const { currentUser, logout, updateProfile, createRoom, joinRoom, publicRooms, onlineUsers, isConnected, error } = useGame();
+    const { currentUser, currentRoom, logout, updateProfile, createRoom, joinRoom, publicRooms, onlineUsers, isConnected, error } = useGame();
     const { stats, resetStats, equipReward } = useStatistics(currentUser?.id);
     const navigate = useNavigate();
     const [joinCode, setJoinCode] = useState('');
     const [isMissionsOpen, setIsMissionsOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isFriendListOpen, setIsFriendListOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const { friends } = currentUser?.friends || []; // unused here but triggers re-render
 
     useEffect(() => {
         if (!currentUser) navigate('/');
-    }, [currentUser, navigate]);
+        if (currentRoom) navigate(`/room/${currentRoom.id}`);
+    }, [currentUser, currentRoom, navigate]);
 
-    const { currentRoom } = useGame();
-    useEffect(() => {
-        if (currentRoom) {
-            navigate(`/room/${currentRoom.id}`);
-        }
-    }, [currentRoom, navigate]);
+    // ... (rest of effect)
 
     const handleCreate = () => createRoom();
 
     const handleJoinCode = (e) => {
+        // ...
         e.preventDefault();
         if (!joinCode) return;
         joinRoom(joinCode);
@@ -40,27 +42,42 @@ export default function LobbyBrowseView() {
     const header = (
         <>
             <div className="flex items-center gap-3">
-                <Avatar
-                    name={currentUser?.name}
-                    seed={currentUser?.avatarSeed}
-                    image={currentUser?.avatarType === 'custom' ? currentUser?.avatarImage : null}
-                    size="sm"
-                    accessory={currentUser?.accessory}
-                />
-                <div className="flex flex-col">
-                    <span className="font-bold text-sm leading-none text-skin-text">
-                        {currentUser?.name}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
-                        {isConnected ? (
-                            <span className="text-emerald-400">● Online</span>
-                        ) : (
-                            <span className="text-red-400 flex items-center gap-1"><WifiOff size={10} /> Offline</span>
-                        )}
-                    </span>
+                <div onClick={() => setIsProfileOpen(true)} className="flex items-center gap-3 cursor-pointer group hover:opacity-80 transition-opacity">
+                    <Avatar
+                        name={currentUser?.name}
+                        seed={currentUser?.avatarSeed}
+                        image={currentUser?.avatarType === 'custom' ? currentUser?.avatarImage : null}
+                        size="sm"
+                        accessory={currentUser?.accessory}
+                    />
+                    <div className="flex flex-col">
+                        <span className="font-bold text-sm leading-none text-skin-text group-hover:text-skin-primary transition-colors">
+                            {currentUser?.name}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 mt-1">
+                            {isConnected ? (
+                                <span className="text-emerald-400">● Online</span>
+                            ) : (
+                                <span className="text-red-400 flex items-center gap-1"><WifiOff size={10} /> Offline</span>
+                            )}
+                        </span>
+                    </div>
                 </div>
             </div>
             <div className="flex items-center gap-2">
+                {!currentUser?.isGuest && (
+                    <button
+                        onClick={() => setIsFriendListOpen(true)}
+                        className="w-10 h-10 rounded-full bg-skin-card flex items-center justify-center text-blue-400 hover:text-blue-500 hover:bg-blue-500/10 transition-colors relative"
+                        title="Amigos"
+                    >
+                        <Users size={18} />
+                        {currentUser?.friendRequests?.filter(r => r.type === 'incoming').length > 0 && (
+                            <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-skin-card" />
+                        )}
+                    </button>
+                )}
+
                 {!currentUser?.isGuest && (
                     <button
                         onClick={() => setIsMissionsOpen(true)}
@@ -101,6 +118,14 @@ export default function LobbyBrowseView() {
 
     return (
         <Layout header={header}>
+            <ProfileModal
+                isOpen={isProfileOpen}
+                onClose={() => setIsProfileOpen(false)}
+                user={currentUser}
+                stats={stats} // stats from useStatistics hook which syncs with server/local
+            />
+            <FriendList isOpen={isFriendListOpen} onClose={() => setIsFriendListOpen(false)} />
+
             <MissionsModal
                 isOpen={isMissionsOpen}
                 onClose={() => setIsMissionsOpen(false)}

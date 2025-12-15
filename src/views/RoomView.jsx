@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { CATEGORIES, getRandomWord } from '../data/categories';
 import Avatar from '../components/ui/Avatar';
+import FriendList from '../components/social/FriendList';
 import Layout from '../components/layout/Layout';
 import { Minus, Plus, Edit2, LogOut, Copy, Check, Play, Crown, Lock, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -79,6 +80,7 @@ export default function RoomView() {
     const { currentRoom, currentUser, joinRoom, leaveRoom, updateRoomSettings, startGame, error } = useGame();
     const navigate = useNavigate();
     const [copied, setCopied] = useState(false);
+    const [isFriendListOpen, setIsFriendListOpen] = useState(false);
     const userIntendsToLeave = useRef(false);
 
     // Room Name Editing
@@ -347,13 +349,26 @@ export default function RoomView() {
                             </div>
                         ))}
                         {/* Empty slots placeholders */}
+                        {/* Empty slots placeholders */}
                         {Array.from({ length: Math.max(0, (currentRoom.settings.maxPlayers || 8) - currentRoom.players.length) }).slice(0, 4).map((_, i) => (
-                            <div key={`e-${i}`} className="flex flex-col items-center gap-2 opacity-20 min-w-[70px]">
-                                <div className="w-12 h-12 rounded-full border-2 border-dashed border-skin-muted bg-skin-card/50"></div>
+                            <div key={`e-${i}`} className="flex flex-col items-center gap-2 min-w-[70px]">
+                                {isHost ? (
+                                    <button
+                                        onClick={() => setIsFriendListOpen(true)}
+                                        className="w-12 h-12 rounded-full border-2 border-dashed border-skin-muted hover:border-skin-primary text-skin-muted hover:text-skin-primary flex items-center justify-center transition-all bg-skin-card/30 hover:bg-skin-primary/10 group"
+                                        title="Convidar Amigo"
+                                    >
+                                        <Plus size={20} className="opacity-50 group-hover:opacity-100 transition-opacity" />
+                                    </button>
+                                ) : (
+                                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-skin-muted bg-skin-card/50 opacity-20"></div>
+                                )}
                             </div>
                         ))}
                     </div>
                 </div>
+
+                <FriendList isOpen={isFriendListOpen} onClose={() => setIsFriendListOpen(false)} />
 
                 {/* Settings Section */}
                 <div className="space-y-4 pt-4 border-t border-skin-border">

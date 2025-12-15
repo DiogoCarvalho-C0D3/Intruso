@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useGame } from '../../context/GameContext';
+import { useSound } from '../../context/SoundContext';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
 import Card from '../ui/Card';
@@ -22,15 +23,36 @@ export default function RoundPhase({ gameState, onNextTurn }) {
     // Show ONLY the specific category for this round
     const activeCategory = gameState.category || 'Geral';
 
-    // Timer for vibration effect
+    const { startTimerSound, stopTimerSound } = useSound();
+
+    // Timer for vibration and sound effect
     useEffect(() => {
         setIsLongTurn(false);
-        const timer = setTimeout(() => {
+
+        // Only play timer sound if it's my turn
+        if (isMyTurn) {
+            startTimerSound(1); // Start slow
+        }
+
+        const timer15 = setTimeout(() => {
+            if (isMyTurn) startTimerSound(2); // Speed up
+        }, 15000);
+
+        const timer25 = setTimeout(() => {
+            if (isMyTurn) startTimerSound(4); // Panic mode
+        }, 25000);
+
+        const timer30 = setTimeout(() => {
             setIsLongTurn(true);
         }, 30000); // 30 seconds
 
-        return () => clearTimeout(timer);
-    }, [gameState.currentTurnIndex]);
+        return () => {
+            clearTimeout(timer15);
+            clearTimeout(timer25);
+            clearTimeout(timer30);
+            stopTimerSound();
+        };
+    }, [gameState.currentTurnIndex, isMyTurn]);
 
     return (
         <div className="view-container relative flex flex-col h-full w-full overflow-hidden bg-gradient-to-b from-skin-base to-skin-card">

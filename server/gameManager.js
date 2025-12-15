@@ -141,6 +141,41 @@ export class GameManager {
         }
     }
 
+    // Friend Notification Helper
+    notifyFriends(userId, statusPayload) {
+        // userId: who changed status
+        // statusPayload: { id: userId, isOnline: true/false, ...profile }
+
+        // In a clearer implementation, we would query the DB for userId's friends reverse index?
+        // Or we iterate all online users and check if they have 'userId' in their friend list.
+        // Since we don't have a reverse index easily in memory without fetching, iterating connected users might be cheaper for small scale.
+
+        // Better: Get user's friend list first? No, we want to notify people who have ME as friend.
+        // Relationship is bidirectional? If I add you, am I in your list? Usually yes in this simple model.
+        // Let's assume bidirectional for now or just notify anyone who has this user in their list.
+
+        Object.values(this.connectedUsers).forEach(user => {
+            // Check if 'user' has 'userId' in their friends list
+            // We need to ensure 'user' object here has the latest friends list.
+            // connectedUsers[socketId] is a cached user object.
+
+            if (user.friends && user.friends.find(f => f.id === userId)) {
+                // Determine socketId for this 'user'
+                // connectedUsers is map socketId -> user. So we need to find keys.
+                // Wait, values are user objects. map is key->value.
+                // We are iterating values. We need the key to emit.
+
+                // Let's iterate entries
+            }
+        });
+
+        for (const [socketId, user] of Object.entries(this.connectedUsers)) {
+            if (user.friends && user.friends.find(f => f.id === userId)) {
+                this.io.to(socketId).emit('friend_update', statusPayload);
+            }
+        }
+    }
+
     async saveUserStats(userId, stats) {
         const record = await this.db.getUser(userId);
         if (record) {
@@ -161,6 +196,9 @@ export class GameManager {
                     this.connectedUsers[socketId] = { ...this.connectedUsers[socketId], ...updates };
                 }
             });
+
+            // Notify friends of update
+            this.notifyFriends(userId, { id: userId, ...newProfile, isOnline: true });
 
             // 2. Update user if they are in any active room (room.players)
             Object.values(rooms).forEach(room => {
@@ -370,6 +408,9 @@ export class GameManager {
     }
 
     disconnect(socketId) {
+        // Capture user to notify friends later
+        const user = this.connectedUsers[socketId];
+
         // Remove from connected users
         if (this.connectedUsers[socketId]) {
             delete this.connectedUsers[socketId];
@@ -387,6 +428,11 @@ export class GameManager {
                 }
                 break;
             }
+        }
+
+        // Notify friends of offline status
+        if (user) {
+            this.notifyFriends(user.id, { id: user.id, isOnline: false });
         }
     }
 

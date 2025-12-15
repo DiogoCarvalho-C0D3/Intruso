@@ -36,7 +36,10 @@ class MongoStorage {
 
     // New Auth Methods
     async findByName(name) {
-        return await User.findOne({ name });
+        // Case-insensitive regex search
+        const doc = await User.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+        if (!doc) return null;
+        return { profile: doc.toObject(), stats: doc.stats, id: doc.id };
     }
 
     async registerUser(profile) {
@@ -148,7 +151,9 @@ class JsonStorage {
     }
 
     async findByName(name) {
-        return Object.values(this.data.users).find(u => u.profile.name === name);
+        if (!name) return null;
+        // Case-insensitive search
+        return Object.values(this.data.users).find(u => u.profile.name.toLowerCase() === name.toLowerCase());
     }
 
     async registerUser(profile) {

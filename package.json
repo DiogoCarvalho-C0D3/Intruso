@@ -13,6 +13,7 @@
     "game": "concurrently \"npm run server\" \"npm run dev -- --host\""
   },
   "dependencies": {
+    "canvas-confetti": "^1.9.4",
     "concurrently": "^9.1.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

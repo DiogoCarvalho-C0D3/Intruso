@@ -25,21 +25,32 @@
         "theme": "theme-slate"
       },
       "stats": {
-        "totalGames": 0,
+        "totalGames": 1,
         "wins": {
           "impostor": 0,
-          "citizen": 0
+          "citizen": 1
         },
         "roles": {
           "impostor": 0,
-          "citizen": 0
+          "citizen": 1
         },
-        "categories": {},
-        "history": [],
-        "unlockedRewards": [],
-        "equippedReward": null
+        "categories": {
+          "Geral": 1
+        },
+        "history": [
+          {
+            "gameId": "mj7o2x0v4ndaiwmir0m",
+            "date": 1765834196828,
+            "role": "citizen",
+            "won": true,
+            "category": "Geral"
+          }
+        ],
+        "unlockedRewards": [
+          "frame_novice"
+        ]
       },
-      "lastLogin": 1765647458672
+      "lastLogin": 1765834196837
     },
     "9f86bb02-43b1-4a83-ab7c-096e201a5389": {
       "profile": {
@@ -121,6 +132,133 @@
         "equippedReward": null
       },
       "lastLogin": 1765797457377
+    },
+    "b6a6e32c-2a0b-4bd8-a83b-6e9e0da253b7": {
+      "profile": {
+        "id": "b6a6e32c-2a0b-4bd8-a83b-6e9e0da253b7",
+        "name": "C_TEAFAS",
+        "isGuest": true,
+        "avatarSeed": "0.776113984941253",
+        "avatarType": "dicebear",
+        "avatarImage": null,
+        "customDecks": []
+      },
+      "stats": {
+        "totalGames": 2,
+        "wins": {
+          "impostor": 0,
+          "citizen": 0
+        },
+        "roles": {
+          "impostor": 1,
+          "citizen": 1
+        },
+        "categories": {
+          "Animais": 1,
+          "Geral": 1
+        },
+        "history": [
+          {
+            "gameId": "mj7o2x0v4ndaiwmir0m",
+            "date": 1765834196814,
+            "role": "impostor",
+            "won": false,
+            "category": "Geral"
+          },
+          {
+            "gameId": "mj0bzwk2s9kvdazymdq",
+            "date": 1765390659425,
+            "role": "citizen",
+            "won": null,
+            "category": "Animais"
+          }
+        ],
+        "unlockedRewards": [
+          "cap",
+          "ears",
+          "frame_novice",
+          "frame_nature"
+        ],
+        "equippedReward": "cap"
+      },
+      "lastLogin": 1765834196818
+    },
+    "3e1b58d9-03d5-4b45-9dcc-75ccbde81841": {
+      "profile": {
+        "id": "3e1b58d9-03d5-4b45-9dcc-75ccbde81841",
+        "name": "C_ERARA",
+        "isGuest": true,
+        "avatarSeed": "0.553967960996783",
+        "avatarType": "dicebear",
+        "avatarImage": null,
+        "customDecks": []
+      },
+      "stats": {
+        "totalGames": 1,
+        "wins": {
+          "impostor": 0,
+          "citizen": 1
+        },
+        "roles": {
+          "impostor": 0,
+          "citizen": 1
+        },
+        "categories": {
+          "Geral": 1
+        },
+        "history": [
+          {
+            "gameId": "mj7o2x0v4ndaiwmir0m",
+            "date": 1765834196814,
+            "role": "citizen",
+            "won": true,
+            "category": "Geral"
+          }
+        ],
+        "unlockedRewards": [
+          "frame_novice"
+        ]
+      },
+      "lastLogin": 1765834330153
+    },
+    "d7654b92-9e52-4f2d-9f03-1bb0e84d9567": {
+      "profile": {
+        "id": "d7654b92-9e52-4f2d-9f03-1bb0e84d9567",
+        "name": "C_SDADA",
+        "isGuest": true,
+        "avatarSeed": "0.1648097540612926",
+        "avatarType": "dicebear",
+        "avatarImage": null,
+        "customDecks": []
+      },
+      "stats": {},
+      "lastLogin": 1765834960129
+    },
+    "eaafed68-ec9f-4bd2-a0e7-2d4712462964": {
+      "profile": {
+        "id": "eaafed68-ec9f-4bd2-a0e7-2d4712462964",
+        "name": "C_DSADAD",
+        "isGuest": true,
+        "avatarSeed": "0.14673953995560696",
+        "avatarType": "dicebear",
+        "avatarImage": null,
+        "customDecks": []
+      },
+      "stats": {
+        "totalGames": 0,
+        "wins": {
+          "impostor": 0,
+          "citizen": 0
+        },
+        "roles": {
+          "impostor": 0,
+          "citizen": 0
+        },
+        "categories": {},
+        "history": [],
+        "unlockedRewards": []
+      },
+      "lastLogin": 1765834988022
     }
   }
 }

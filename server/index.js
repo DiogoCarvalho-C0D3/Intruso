@@ -199,6 +199,214 @@ io.on('connection', async (socket) => {
     socket.on('send_reaction', ({ roomId, emoji }) => {
         io.to(roomId).emit('reaction_received', { emoji, socketId: socket.id });
     });
+
+    // KUDOS SYSTEM
+    socket.on('give_kudos', async ({ targetId, kudoType }) => {
+        try {
+            if (!['detective', 'liar', 'mvp'].includes(kudoType)) return;
+
+            // Increment the specific kudo
+            const updateField = {};
+            updateField[`stats.kudos.${kudoType}`] = 1;
+
+            const updatedUser = await gameManager.db.User.findOneAndUpdate(
+                { id: targetId },
+                { $inc: updateField },
+                { new: true }
+            );
+
+            // Notify target if online to update their UI
+            const targetSocketId = getSocketId(targetId);
+            if (targetSocketId) {
+                // We reuse the 'profile_updated' event or send a specific one
+                // Let's send a silent profile update or just re-fetch
+                // Sending the full updated user object is easiest if client handles it
+                // Actually, Storage.js logic is mixed here. 
+                // Let's us gameManager.db wrapper if possible, but finding by ID and updating is mongo specific.
+                // Re-using getUser to ensure consistent format if we emit back
+                const fullUser = await gameManager.db.getUser(targetId);
+                io.to(targetSocketId).emit('profile_updated', fullUser);
+
+                // Optional: Toast notification
+                const kudoLabels = { detective: '🕵️ Detetive Astuto', liar: '🎭 Melhor Mentiroso', mvp: '🧠 Mente Brilhante' };
+                io.to(targetSocketId).emit('show_toast', {
+                    type: 'success',
+                    message: `Recebeste honra: ${kudoLabels[kudoType]}!`
+                });
+            }
+
+        } catch (error) {
+            console.error('Error giving kudos:', error);
+        }
+    });
+
+    socket.on('friend_action', async ({ action, payload }) => {
+        try {
+            const { userId, targetId, targetName } = payload;
+
+            // HELPER: Get Socket ID by User ID
+            const getSocket = (uid) => {
+                const entry = Object.entries(gameManager.connectedUsers).find(([sid, u]) => u.id === uid);
+                return entry ? entry[0] : null;
+            };
+
+            if (action === 'SEND_REQUEST') {
+                // 1. Get User
+                const user = await gameManager.db.getUser(userId);
+                // 2. Get Target
+                let target;
+                if (targetId) target = await gameManager.db.getUser(targetId);
+                else if (targetName) target = await gameManager.db.findByName(targetName);
+
+                if (!user || !user.profile) {
+                    socket.emit('error_message', 'Erro de sessão.');
+                    return;
+                }
+                if (!target || !target.profile) {
+                    const searchedFor = targetName || 'ID desconhecido';
+                    socket.emit('error_message', `Utilizador "${searchedFor}" não encontrado.`);
+                    return;
+                }
+                if (user.profile.id === target.profile.id) {
+                    socket.emit('error_message', 'Não podes adicionar-te a ti mesmo!');
+                    return;
+                }
+
+                // Check existence
+                const userReqs = user.profile.friendRequests || [];
+                const userFriends = user.profile.friends || [];
+
+                if (userFriends.find(f => f.id === target.profile.id)) {
+                    socket.emit('error_message', 'Já são amigos!');
+                    return;
+                }
+                if (userReqs.find(r => r.id === target.profile.id)) {
+                    socket.emit('error_message', 'Pedido já enviado ou pendente!');
+                    return;
+                }
+
+                // Update User (Outgoing)
+                if (!user.profile.friendRequests) user.profile.friendRequests = [];
+                user.profile.friendRequests.push({ id: target.profile.id, name: target.profile.name, type: 'outgoing' });
+                await gameManager.db.saveUser(user.profile, user.stats);
+
+                // Update Target (Incoming)
+                if (!target.profile.friendRequests) target.profile.friendRequests = [];
+                target.profile.friendRequests.push({ id: user.profile.id, name: user.profile.name, type: 'incoming' });
+                await gameManager.db.saveUser(target.profile, target.stats);
+
+                // Notify User
+                socket.emit('profile_updated', user.profile);
+                socket.emit('notification', { message: `Pedido enviado a ${target.profile.name}`, type: 'success' });
+
+                // Notify Target
+                const targetSocket = getSocket(target.profile.id);
+                if (targetSocket) {
+                    io.to(targetSocket).emit('profile_updated', target.profile); // Update req list
+                    io.to(targetSocket).emit('notification', {
+                        message: `${user.profile.name} enviou-te um pedido de amizade!`,
+                        type: 'info'
+                    });
+                }
+            }
+
+            if (action === 'ACCEPT_REQUEST') {
+                const { requesterId } = payload; // The person who sent the request
+                const user = await gameManager.db.getUser(userId); // Me (Accepting)
+                const requester = await gameManager.db.getUser(requesterId);
+
+                if (user && requester) {
+                    // Remove from requests
+                    user.profile.friendRequests = (user.profile.friendRequests || []).filter(r => r.id !== requesterId);
+                    requester.profile.friendRequests = (requester.profile.friendRequests || []).filter(r => r.id !== userId);
+
+                    // Add to friends
+                    if (!user.profile.friends) user.profile.friends = [];
+                    user.profile.friends.push({ id: requester.profile.id, name: requester.profile.name });
+
+                    if (!requester.profile.friends) requester.profile.friends = [];
+                    requester.profile.friends.push({ id: user.profile.id, name: user.profile.name });
+
+                    // Save
+                    await gameManager.db.saveUser(user.profile, user.stats);
+                    await gameManager.db.saveUser(requester.profile, requester.stats);
+
+                    // Notify Me
+                    socket.emit('profile_updated', user.profile);
+                    socket.emit('notification', { message: `Agora és amigo de ${requester.profile.name}!`, type: 'success' });
+
+                    // Notify Requester
+                    const reqSocket = getSocket(requester.profile.id);
+                    if (reqSocket) {
+                        io.to(reqSocket).emit('profile_updated', requester.profile);
+                        io.to(reqSocket).emit('notification', { message: `${user.profile.name} aceitou o teu pedido!`, type: 'success' });
+                    }
+                }
+            }
+
+            if (action === 'DECLINE_REQUEST') {
+                const { requesterId } = payload;
+                const user = await gameManager.db.getUser(userId);
+                const requester = await gameManager.db.getUser(requesterId);
+
+                if (user && requester) {
+                    // Remove from requests only
+                    user.profile.friendRequests = (user.profile.friendRequests || []).filter(r => r.id !== requesterId);
+                    requester.profile.friendRequests = (requester.profile.friendRequests || []).filter(r => r.id !== userId);
+
+                    await gameManager.db.saveUser(user.profile, user.stats);
+                    await gameManager.db.saveUser(requester.profile, requester.stats);
+
+                    socket.emit('profile_updated', user.profile);
+
+                    // Silently update requester so pending state clears
+                    const reqSocket = getSocket(requester.profile.id);
+                    if (reqSocket) {
+                        io.to(reqSocket).emit('profile_updated', requester.profile);
+                    }
+                }
+            }
+
+            if (action === 'REMOVE_FRIEND') {
+                const user = await gameManager.db.getUser(userId);
+                const target = await gameManager.db.getUser(targetId);
+
+                if (user && target) {
+                    user.profile.friends = (user.profile.friends || []).filter(f => f.id !== targetId);
+                    await gameManager.db.saveUser(user.profile, user.stats);
+
+                    // Mutual removal
+                    target.profile.friends = (target.profile.friends || []).filter(f => f.id !== userId);
+                    await gameManager.db.saveUser(target.profile, target.stats);
+
+                    socket.emit('profile_updated', user.profile);
+                    socket.emit('notification', { message: 'Amigo removido.', type: 'info' });
+
+                    // Notify target if online
+                    const targetSocket = getSocket(target.profile.id);
+                    if (targetSocket) {
+                        io.to(targetSocket).emit('profile_updated', target.profile);
+                    }
+                }
+            }
+
+            if (action === 'INVITE') {
+                const { roomId, inviterName } = payload;
+                const targetSocket = getSocket(targetId);
+
+                if (targetSocket) {
+                    io.to(targetSocket).emit('invite_received', { roomId, inviterName });
+                    socket.emit('notification', { message: 'Convite enviado!', type: 'success' });
+                } else {
+                    socket.emit('error_message', 'Utilizador não está online.');
+                }
+            }
+
+        } catch (e) {
+            console.error(e);
+            socket.emit('error_message', 'Erro ao processar ação social.');
+        }
+    });
 });
 
 // Handle SPA routing: serve index.html for any unknown route

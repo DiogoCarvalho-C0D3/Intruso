@@ -11,12 +11,14 @@ import ChangelogView from './views/ChangelogView';
 import CustomDecksView from './views/CustomDecksView';
 
 import InstallPrompt from './components/pwa/InstallPrompt';
+import GlobalNotifications from './components/ui/GlobalNotifications';
 
 function App() {
   return (
     <GameProvider>
       <SoundProvider>
         <BrowserRouter>
+          <GlobalNotifications />
           <InstallPrompt />
           <Routes>
             <Route path="/" element={<HomeView />} />
