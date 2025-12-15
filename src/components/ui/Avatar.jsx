@@ -12,18 +12,23 @@ export default function Avatar({ name, seed, image, size = 'md', className = '',
         xs: 'w-[24px] h-[24px] min-w-[24px]',
     };
 
+    // Resolve accessory frame
+    const frameClass = accessory && REWARDS_MAP[accessory]?.frameClass ? REWARDS_MAP[accessory].frameClass : '';
+
+    // If frame has white bg, we want transparent avatar to show it
+    const hasWhiteBg = frameClass.includes('bg-white');
+
     // DiceBear URL
     const avatarUrl = useMemo(() => {
         if (image) return image; // Use custom image if available
         const seedValue = seed || name || 'default';
+
+        // If frame forces white bg, use transparent for avatar so container bg shows
+        const bgParams = hasWhiteBg ? 'backgroundColor=transparent' : 'backgroundColor=b6e3f4,c0aede,d1d4f9';
+
         // API documentation: https://www.dicebear.com/styles/fun-emoji/
-        return `https://api.dicebear.com/9.x/fun-emoji/svg?seed=${encodeURIComponent(seedValue)}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
-    }, [seed, name, image]);
-
-    const isCustom = !!image;
-
-    // Resolve accessory frame
-    const frameClass = accessory && REWARDS_MAP[accessory]?.frameClass ? REWARDS_MAP[accessory].frameClass : '';
+        return `https://api.dicebear.com/9.x/fun-emoji/svg?seed=${encodeURIComponent(seedValue)}&${bgParams}`;
+    }, [seed, name, image, hasWhiteBg]);
 
     return (
         <div

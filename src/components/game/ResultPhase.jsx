@@ -183,9 +183,15 @@ export default function ResultPhase({ gameState, onRestart }) {
             </div>
 
             <div className="flex-none p-6 pt-0 bg-gradient-to-t from-skin-fill-end via-skin-fill-end to-transparent z-10 sticky bottom-0 flex flex-col gap-3">
-                <Button onClick={onRestart} className="w-full text-lg shadow-xl shadow-skin-primary/10" style={{ height: '56px' }}>
-                    <RotateCcw size={20} className="mr-2" /> Jogar Novamente
-                </Button>
+                {currentRoom.hostId === currentUser.id ? (
+                    <Button onClick={onRestart} className="w-full text-lg shadow-xl shadow-skin-primary/10" style={{ height: '56px' }}>
+                        <RotateCcw size={20} className="mr-2" /> Jogar Novamente
+                    </Button>
+                ) : (
+                    <div className="w-full h-14 rounded-full flex items-center justify-center bg-skin-card border-2 border-dashed border-skin-border text-skin-muted font-bold animate-pulse">
+                        Aguardando anfitrião...
+                    </div>
+                )}
 
                 <button
                     onClick={leaveRoom}

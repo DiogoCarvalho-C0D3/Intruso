@@ -105,9 +105,9 @@ export default function LobbyBrowseView() {
                 isOpen={isMissionsOpen}
                 onClose={() => setIsMissionsOpen(false)}
                 stats={stats}
+                equippedId={currentUser?.accessory}
                 onEquip={(id) => {
-                    equipReward(id);
-                    // Pass ID directly so Avatar can lookup frame class
+                    // Directly update profile, bypassing stats.equippedReward
                     updateProfile({ accessory: id });
                 }}
             />
@@ -181,7 +181,7 @@ export default function LobbyBrowseView() {
                                         seed={u.avatarSeed || u.name}
                                         image={u.avatarType === 'custom' ? u.avatarImage : null}
                                         size="sm"
-                                        className="border-2 border-skin-border"
+                                        className=""
                                         accessory={u.accessory}
                                     />
                                     <span className="text-[10px] font-medium text-skin-muted truncate max-w-full">{u.name}</span>

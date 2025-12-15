@@ -110,7 +110,7 @@ export const MISSIONS = [
         description: 'Joga 5 jogos de Países',
         target: 5,
         statKey: 'categories.Países',
-        reward: { id: 'frame_passport', name: 'Viajante', frameClass: 'ring-4 ring-blue-500 border-4 border-red-500 border-dashed bg-white', type: 'frame' }
+        reward: { id: 'frame_passport', name: 'Viajante', frameClass: 'ring-4 ring-blue-500 border-4 border-red-500 border-dashed !bg-white', type: 'frame' }
     }
 ];
 

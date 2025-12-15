@@ -100,7 +100,7 @@ export default function RevealPhase({ gameState, onReady }) {
             </div>
 
             <Card
-                className="w-full max-w-[280px] aspect-[3/4.2] flex flex-col items-center justify-center mb-8 relative overflow-hidden cursor-pointer transition-transform active:scale-[0.98] focus:outline-none ring-offset-4 ring-offset-skin-base focus:ring-2 ring-skin-primary rounded-[2.5rem]"
+                className="w-full max-w-sm aspect-[3/4.2] flex flex-col items-center justify-center mb-8 relative overflow-hidden cursor-pointer transition-transform active:scale-[0.98] focus:outline-none ring-offset-4 ring-offset-skin-base focus:ring-2 ring-skin-primary rounded-[2.5rem]"
                 onClick={handleRevealToggle}
                 style={{
                     border: revealed ? '2px solid var(--color-primary)' : '2px solid var(--color-border)',
@@ -142,8 +142,8 @@ export default function RevealPhase({ gameState, onReady }) {
                                 <>
                                     <div className="flex flex-col items-center gap-2 w-full">
                                         <span className="text-xs font-bold uppercase tracking-widest text-skin-primary/80">Palavra Secreta</span>
-                                        <div className="relative w-full py-4 mb-2">
-                                            <div className="text-skin-text font-black text-4xl break-words text-center w-full leading-tight uppercase relative z-10 px-4 drop-shadow-[0_0_15px_rgba(var(--color-primary),0.5)]">
+                                        <div className="relative w-full py-4 mb-2 flex justify-center">
+                                            <div className={`text-skin-text font-black text-center w-full leading-tight uppercase relative z-10 px-2 drop-shadow-[0_0_15px_rgba(var(--color-primary),0.5)] ${word.length > 10 ? 'text-3xl tracking-tight' : 'text-4xl tracking-normal'}`}>
                                                 {word}
                                             </div>
                                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-32 -z-0 pointer-events-none"

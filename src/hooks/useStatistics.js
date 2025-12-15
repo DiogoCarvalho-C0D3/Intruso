@@ -11,7 +11,6 @@ const INITIAL_STATS = {
     categories: {},
     history: [], // { date, role, result, category, gameId }
     unlockedRewards: [], // IDs of unlocked rewards
-    equippedReward: null // ID of equipped helper
 };
 
 export function useStatistics(userId = null) {
@@ -145,13 +144,11 @@ export function useStatistics(userId = null) {
         });
     };
 
-    const equipReward = (rewardId) => {
-        setStats(prev => ({ ...prev, equippedReward: rewardId }));
-    };
+
 
     const resetStats = () => {
         setStats(INITIAL_STATS);
     };
 
-    return { stats, recordGame, resetStats, equipReward };
+    return { stats, recordGame, resetStats };
 }

@@ -71,7 +71,7 @@ class MongoStorage {
             const top5Docs = await User.find({ isGuest: false })
                 .sort({ [fieldKey]: -1 })
                 .limit(5)
-                .select('name avatarSeed avatarType avatarImage ' + fieldKey);
+                .select('name avatarSeed avatarType avatarImage accessory ' + fieldKey);
 
             const top5 = top5Docs.map(doc => {
                 const value = fieldKey.split('.').reduce((o, i) => o?.[i] || 0, doc);
@@ -205,6 +205,7 @@ class JsonStorage {
                 avatarSeed: u.profile.avatarSeed,
                 avatarType: u.profile.avatarType,
                 avatarImage: u.profile.avatarImage,
+                accessory: u.profile.accessory,
                 value: getValue(u)
             }));
 

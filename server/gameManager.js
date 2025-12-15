@@ -53,7 +53,7 @@ export class GameManager {
     // Returns { user, stats, error }
     async authenticateUser(action, payload) {
         try {
-            const { id, name, pin, avatarSeed, avatarType, avatarImage } = payload;
+            const { id, name, pin, avatarSeed, avatarType, avatarImage, accessory } = payload;
 
             // 1. GUEST MODE
             if (action === 'GUEST') {
@@ -76,7 +76,7 @@ export class GameManager {
                     id: guestId,
                     name: guestName,
                     isGuest: true,
-                    avatarSeed, avatarType, avatarImage,
+                    avatarSeed, avatarType, avatarImage, accessory,
                     customDecks: []
                 };
 
@@ -110,7 +110,7 @@ export class GameManager {
                     name,
                     pin, // In a real app, hash this!
                     isGuest: false,
-                    avatarSeed, avatarType, avatarImage
+                    avatarSeed, avatarType, avatarImage, accessory
                 };
                 await this.db.registerUser(newUser);
                 return { user: newUser, stats: {} };

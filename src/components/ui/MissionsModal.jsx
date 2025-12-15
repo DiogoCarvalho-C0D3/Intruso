@@ -4,7 +4,7 @@ import { X, Gift, CheckCircle, Lock } from 'lucide-react';
 import Button from './Button';
 import { MISSIONS } from '../../data/missions';
 
-export default function MissionsModal({ isOpen, onClose, stats, onEquip }) {
+export default function MissionsModal({ isOpen, onClose, stats, equippedId, onEquip }) {
     if (!isOpen) return null;
 
     const unlockedSet = new Set(stats.unlockedRewards || []);
@@ -50,7 +50,7 @@ export default function MissionsModal({ isOpen, onClose, stats, onEquip }) {
                                 {/* Default Clean Option */}
                                 <button
                                     onClick={() => onEquip(null)}
-                                    className={`flex-none w-16 h-16 rounded-xl flex items-center justify-center text-xs font-bold text-skin-muted border-2 transition-all active:scale-95 ${!stats.equippedReward
+                                    className={`flex-none w-16 h-16 rounded-xl flex items-center justify-center text-xs font-bold text-skin-muted border-2 transition-all active:scale-95 ${!equippedId
                                         ? 'bg-skin-primary/20 border-skin-primary text-skin-primary'
                                         : 'bg-skin-base border-skin-border hover:border-skin-primary/50'
                                         }`}
@@ -59,7 +59,7 @@ export default function MissionsModal({ isOpen, onClose, stats, onEquip }) {
                                 </button>
 
                                 {MISSIONS.filter(m => unlockedSet.has(m.reward.id)).map(mission => {
-                                    const isEquipped = stats.equippedReward === mission.reward.id;
+                                    const isEquipped = equippedId === mission.reward.id;
 
                                     return (
                                         <button
