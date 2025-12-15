@@ -1,6 +1,17 @@
-export const APP_VERSION = '1.4.0';
+export const APP_VERSION = '1.4.1';
 
 export const CHANGELOG = [
+    {
+        version: '1.4.1',
+        date: '2025-12-15',
+        title: 'Polimento & Correções',
+        features: [
+            '🐛 Correções de Bugs: Gradientes visíveis, menus responsivos e lógica de desempate justa.',
+            '🎨 UI Refinada: Scrollbars temáticas, melhorias no iPhone e ícones mais limpos.',
+            '🔒 Melhorias de Segurança: Acesso restrito para convidados (sem Missões/Oficina).',
+            '⚙️ Infraestrutura: Conexão MongoDB robusta com suporte a ambientes locais.'
+        ]
+    },
     {
         version: '1.4.0',
         date: '2025-12-13',

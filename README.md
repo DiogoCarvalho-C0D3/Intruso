@@ -43,6 +43,13 @@ Um jogador é o **Intruso** e não sabe a palavra secreta; os outros (Civis) sab
     *   Acede a `http://localhost:5173`.
     *   Por defeito, usa uma base de dados local (`server/db.json`).
 
+3.  **Configurar Base de Dados (Opcional)**
+    Cria um ficheiro `.env` na raiz do projeto:
+    ```env
+    MONGO_URI=mongodb+srv://<user>:<pass>@cluster.../dev?appName=MainCluster
+    ```
+    Isto ativa a persistência na cloud em vez do ficheiro local.
+
 ## ☁️ Deploy (Render.com)
 
 O projeto está configurado para correr no Render.com.
@@ -53,7 +60,7 @@ Para garantir que os dados não são apagados quando o servidor reinicia, tens d
 1.  **MongoDB Atlas (Recomendado/Grátis)**:
     *   Cria um cluster gratuito no MongoDB Atlas.
     *   No painel do Render, adiciona uma Environment Variable:
-        *   `MONGO_URI`: `mongodb+srv://<user>:<password>@cluster...`
+        *   `MONGO_URI`: `mongodb+srv://<user>:<password>@cluster.../intruso?appName=MainCluster`
     *   O jogo deteta a variável e muda automaticamente para o modo MongoDB.
 
 2.  **JSON Local (Efemeridade)**:
