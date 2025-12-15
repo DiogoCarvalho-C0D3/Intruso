@@ -1,5 +1,5 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Snowfall from '../ui/Snowfall';
 import ChristmasDecorations from '../ui/ChristmasDecorations';
@@ -54,16 +54,21 @@ export default function Layout({
                     </footer>
                 )}
 
-                {/* Sound Toggle */}
-                <SoundToggle />
+                {/* Sound & Version - Only on Home/Lobby */}
+                {['/', '/lobby'].includes(useLocation().pathname) && (
+                    <>
+                        {/* Sound Toggle */}
+                        <SoundToggle />
 
-                {/* Version Watermark */}
-                <Link
-                    to="/changelog"
-                    className="absolute bottom-[calc(0.5rem+env(safe-area-inset-bottom))] right-4 z-50 opacity-30 hover:opacity-100 transition-opacity text-[10px] font-mono text-skin-muted pointer-events-auto cursor-pointer"
-                >
-                    v{APP_VERSION}
-                </Link>
+                        {/* Version Watermark */}
+                        <Link
+                            to="/changelog"
+                            className="absolute bottom-[calc(0.5rem+env(safe-area-inset-bottom))] right-4 z-50 opacity-30 hover:opacity-100 transition-opacity text-[10px] font-mono text-skin-muted pointer-events-auto cursor-pointer"
+                        >
+                            v{APP_VERSION}
+                        </Link>
+                    </>
+                )}
             </div>
         </div>
     );

@@ -36,7 +36,7 @@ export default function ReactionBar() {
                 />
             )}
 
-            <div className="fixed bottom-32 right-4 z-40 flex flex-col items-end gap-2 pointer-events-auto">
+            <div className="absolute bottom-32 right-4 z-40 flex flex-col items-end gap-2 pointer-events-auto">
                 <AnimatePresence>
                     {isOpen && (
                         <motion.div

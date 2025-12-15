@@ -232,7 +232,7 @@ export default function GameView() {
     const isImpostor = gameState.impostorIds.includes(currentUser.id);
 
     return (
-        <Layout header={header}>
+        <Layout header={header} noPadding={true}>
             {/* Host Controls Modal - PORTAL to body */}
             {createPortal(
                 <AnimatePresence>

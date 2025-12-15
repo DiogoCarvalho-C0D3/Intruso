@@ -4,12 +4,12 @@ import { useStatistics } from '../../hooks/useStatistics';
 import Button from '../ui/Button';
 import Avatar from '../ui/Avatar';
 import Card from '../ui/Card';
-import { Crown, Skull, RotateCcw } from 'lucide-react';
+import { Crown, Skull, RotateCcw, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function ResultPhase({ gameState, onRestart }) {
-    const { currentRoom, currentUser } = useGame();
-    const { recordGame } = useStatistics();
+    const { currentRoom, currentUser, leaveRoom } = useGame();
+    const { recordGame } = useStatistics(currentUser?.id);
 
     // Calculate results
     const votes = gameState.votes;
@@ -182,10 +182,17 @@ export default function ResultPhase({ gameState, onRestart }) {
                 </div>
             </div>
 
-            <div className="flex-none p-6 pt-0 bg-gradient-to-t from-skin-fill-end via-skin-fill-end to-transparent z-10 sticky bottom-0">
-                <Button onClick={onRestart} className="w-full text-lg shadow-xl shadow-skin-primary/10" style={{ height: '60px' }}>
+            <div className="flex-none p-6 pt-0 bg-gradient-to-t from-skin-fill-end via-skin-fill-end to-transparent z-10 sticky bottom-0 flex flex-col gap-3">
+                <Button onClick={onRestart} className="w-full text-lg shadow-xl shadow-skin-primary/10" style={{ height: '56px' }}>
                     <RotateCcw size={20} className="mr-2" /> Jogar Novamente
                 </Button>
+
+                <button
+                    onClick={leaveRoom}
+                    className="w-full h-12 rounded-full flex items-center justify-center text-skin-muted hover:text-skin-text hover:bg-skin-card border border-skin-border transition-colors font-bold text-sm"
+                >
+                    <LogOut size={16} className="mr-2" /> Sair para o Lobby
+                </button>
             </div>
         </div>
     );
